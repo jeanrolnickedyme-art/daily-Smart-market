@@ -1,0 +1,1081 @@
+<title>Daily Smart Market Manager</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Concept : barre latérale bleu nuit fixe + zone de travail claire ; tiroir sur mobile. Vert doux = action et progression. */
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --surface2:#EDF2F0; --fg:#0E1B2E; --muted:#5A6B7C; --line:#DAE3E0; --grid:#E3EAE8;
+  --navy:#0B1F3A; --navy-2:#14335F; --side-fg:#B9C8DB; --side-strong:#FFFFFF;
+  --accent:#2E9E6B; --accent-ink:#FFFFFF; --accent-soft:#E0F3E9; --accent-text:#1F7A50;
+  --good:#1F7A50; --good-soft:#E0F3E9; --warn:#8F5A00; --warn-soft:#FBF0D9; --bad:#B3392B; --bad-soft:#FBE5E1; --info:#245E9F; --info-soft:#E1ECF8;
+  --c1:#2E9E6B; --c2:#2F6DB5; --c3:#D9962B; --c4:#8B5FBF; --c5:#C4553F;
+  --shadow:0 1px 2px rgba(11,31,58,.06),0 4px 14px rgba(11,31,58,.05);
+  --font:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1424; --surface:#111F35; --surface2:#172A47; --fg:#E7EEF7; --muted:#93A5BA; --line:#223756; --grid:#1F3350;
+  --navy:#07101E; --navy-2:#0F2547; --side-fg:#9FB1C7;
+  --accent:#3DBB84; --accent-ink:#04180F; --accent-soft:#123826; --accent-text:#58D39C;
+  --good:#58D39C; --good-soft:#123826; --warn:#F0B54D; --warn-soft:#3A2B0E; --bad:#F08A7C; --bad-soft:#3F1B17; --info:#7FB2F0; --info-soft:#142B49;
+  --c1:#3DBB84; --c2:#6AA4EB; --c3:#EDB04F; --c4:#B391E3; --c5:#EC8B76; --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1424; --surface:#111F35; --surface2:#172A47; --fg:#E7EEF7; --muted:#93A5BA; --line:#223756; --grid:#1F3350;
+  --navy:#07101E; --navy-2:#0F2547; --side-fg:#9FB1C7;
+  --accent:#3DBB84; --accent-ink:#04180F; --accent-soft:#123826; --accent-text:#58D39C;
+  --good:#58D39C; --good-soft:#123826; --warn:#F0B54D; --warn-soft:#3A2B0E; --bad:#F08A7C; --bad-soft:#3F1B17; --info:#7FB2F0; --info-soft:#142B49;
+  --c1:#3DBB84; --c2:#6AA4EB; --c3:#EDB04F; --c4:#B391E3; --c5:#EC8B76; --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3,h4{margin:0;line-height:1.25;text-wrap:balance}
+p{margin:0}
+a{color:var(--accent-text)}
+.num{font-variant-numeric:tabular-nums}
+.app{display:flex;min-height:100%}
+.side{width:252px;flex:none;background:var(--navy);color:var(--side-fg);position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;padding:20px 12px 16px max(14px,env(safe-area-inset-left,0px));z-index:40}
+.logo{display:flex;gap:10px;align-items:center;padding:4px 6px 18px}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);flex:none}
+.logo-t{font-weight:800;color:var(--side-strong);line-height:1.1;font-size:16px;letter-spacing:-.01em}
+.logo-s{font-size:10.5px;color:var(--side-fg);margin-top:3px;line-height:1.25}
+.nav{display:flex;flex-direction:column;gap:3px;flex:1;overflow:auto}
+.nav button{display:flex;gap:11px;align-items:center;background:none;border:0;border-radius:9px;padding:10px 12px;color:var(--side-fg);cursor:pointer;text-align:left;font-weight:600}
+.nav button:hover{background:rgba(255,255,255,.06);color:var(--side-strong)}
+.nav button.on{background:var(--accent);color:var(--accent-ink)}
+.side-foot{font-size:10.5px;line-height:1.4;padding:10px 6px 0;border-top:1px solid rgba(255,255,255,.1);margin-top:10px}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{display:flex;gap:12px;align-items:center;padding:14px max(16px,env(safe-area-inset-right,0px)) 14px max(24px,env(safe-area-inset-left,0px));background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:30}
+.top h1{font-size:18px;font-weight:800;flex:1;min-width:0}
+.btn.menu-btn{display:none}
+.page{padding:22px max(24px,env(safe-area-inset-right,0px)) 40px max(24px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:18px;max-width:1360px;width:100%}
+.sub{color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-size:15px;font-weight:800}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.grid{display:grid;gap:16px}
+.g-kpi{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.g3{grid-template-columns:2fr 1fr}
+.kpi{display:flex;flex-direction:column;gap:6px}
+.kpi-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-weight:600;font-size:12.5px}
+.kpi-ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-text)}
+.kpi-v{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.kpi-n{font-size:11.5px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 13px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn:focus-visible,.nav button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.06)}
+.btn.dng{color:var(--bad)}
+.btn.sm{padding:5px 9px;font-size:12px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.ico-btn{width:32px;height:32px;padding:0;justify-content:center}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:700;background:var(--surface2);color:var(--muted);white-space:nowrap}
+.badge.good{background:var(--good-soft);color:var(--good)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)}
+.badge.info{background:var(--info-soft);color:var(--info)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:9px 14px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tabs button.on{color:var(--accent-text);border-color:var(--accent)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bar .grow{flex:1}
+.inp,.sel,.txt{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 11px;min-width:0;width:100%}
+.bar .inp,.bar .sel{width:auto;min-width:130px}
+.txt{min-height:84px;resize:vertical}
+.lbl{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:12.5px}
+.lbl .err{color:var(--bad);font-weight:600}
+.lbl .hint{color:var(--muted);font-weight:500;font-size:11.5px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form .full{grid-column:1/-1}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.tfoot td{font-weight:800;border-top:2px solid var(--line)}
+.ov{position:fixed;inset:0;background:rgba(5,12,24,.6);display:flex;justify-content:center;align-items:flex-start;padding:max(4vh,16px) 16px;overflow:auto;z-index:60}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:640px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:16px}
+.modal.wide{max-width:900px}
+.modal-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.modal-h h2{font-size:18px;font-weight:800}
+.toasts{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:80}
+.toast{background:var(--navy);color:#fff;padding:11px 15px;border-radius:11px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:340px;display:flex;gap:9px;align-items:center}
+.toast.err{background:var(--bad);color:#fff}
+.note{border-radius:11px;padding:11px 14px;font-size:13px;display:flex;gap:10px;align-items:flex-start;background:var(--info-soft);color:var(--info)}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.note.good{background:var(--good-soft);color:var(--good)}
+.note.bad{background:var(--bad-soft);color:var(--bad)}
+.note svg{flex:none;margin-top:2px}
+.prog{height:9px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.prog>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px}
+.pcard{display:flex;flex-direction:column;gap:8px;padding:14px;cursor:pointer}
+.pimg{aspect-ratio:4/3;border-radius:10px;background:var(--surface2);display:grid;place-items:center;overflow:hidden;font-weight:800;font-size:30px;color:#fff}
+.pimg img{width:100%;height:100%;object-fit:cover;display:block}
+.empty{padding:34px 16px;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.chart{width:100%;min-width:0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.tip{position:absolute;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;padding:6px 9px;border-radius:8px;transform:translate(-50%,-110%);white-space:nowrap;z-index:5}
+.kanban{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.kcol{background:var(--surface2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:9px;min-height:200px}
+.kcol.over{outline:2px dashed var(--accent)}
+.kcol h3{font-size:13px;display:flex;justify-content:space-between;padding:2px 4px}
+.kcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:7px;cursor:grab}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cal .h{background:var(--surface2);padding:7px;font-size:11.5px;font-weight:800;color:var(--muted);text-align:center}
+.cal .d{background:var(--surface);min-height:92px;padding:5px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-width:0}
+.cal .d.out{background:var(--bg);color:var(--muted)}
+.cal .d .n{font-size:11.5px;font-weight:700;color:var(--muted)}
+.cal .d.today .n{color:var(--accent-text)}
+.chip{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:0;text-align:left;cursor:pointer;color:#fff}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:10px;overflow-x:auto}
+.wk>div{background:var(--surface2);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;min-height:150px}
+.split{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+.kv dt{color:var(--muted);font-weight:600}.kv dd{margin:0}
+.demo-bar{background:var(--warn-soft);color:var(--warn);border-radius:11px;padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-weight:600}
+.bell{position:relative}
+.bell-n{position:absolute;top:-4px;right:-4px;background:var(--bad);color:#fff;font-size:10px;min-width:16px;height:16px;border-radius:9px;display:grid;place-items:center;font-weight:800}
+.pop{position:absolute;right:0;top:40px;width:320px;max-width:86vw;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:10px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.seg{display:inline-flex;background:var(--surface2);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;padding:5px 11px;border-radius:7px;font-weight:700;cursor:pointer;color:var(--muted);font-size:12.5px}
+.seg button.on{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+.scrim{display:none}
+@media (max-width:960px){
+  .side{position:fixed;left:0;top:0;transform:translateX(-102%);transition:transform .2s;box-shadow:0 0 40px rgba(0,0,0,.4)}
+  .side.open{transform:none}
+  .scrim.open{display:block;position:fixed;inset:0;background:rgba(5,12,24,.5);z-index:35}
+  .btn.menu-btn{display:inline-flex}
+  .top{padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .page{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .g3{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .form{grid-template-columns:1fr}
+  .kanban{grid-template-columns:1fr}
+  .kpi-v{font-size:21px}
+  .cal .d{min-height:62px}
+  .chip{font-size:9.5px;padding:1px 4px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="text/babel" data-presets="react">
+const {useState,useMemo,useEffect,useRef,useContext,createContext,useCallback}=React;
+
+/* ============ Utilitaires ============ */
+const LS='dsmm.v1';
+const uid=()=>Math.random().toString(36).slice(2,10);
+const pad=n=>String(n).padStart(2,'0');
+const isoOf=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today=()=>isoOf(new Date());
+const addDays=(iso,n)=>{const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return isoOf(d)};
+const MONTHS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MS=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+const fmtDate=iso=>{if(!iso)return '—';const [y,m,d]=String(iso).slice(0,10).split('-');return `${d}/${m}/${y}`};
+const fmtTs=ts=>ts?new Date(ts).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'}):'Jamais';
+const lastMonths=n=>{const out=[];const d=new Date();d.setDate(1);for(let i=n-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);out.push(`${x.getFullYear()}-${pad(x.getMonth()+1)}`)}return out};
+const monthLabel=k=>MS[+k.slice(5,7)-1];
+const sum=(a,f)=>a.reduce((s,x)=>s+(f?f(x):x),0);
+const short=n=>{const a=Math.abs(n);return a>=1e6?(n/1e6).toFixed(1).replace('.0','')+'M':a>=1000?(n/1000).toFixed(a>=1e4?0:1).replace('.0','')+'k':String(Math.round(n*10)/10)};
+const niceMax=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const f=v/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p};
+const periodRange=p=>{const t=today();if(p==='month')return [t.slice(0,7)+'-01',t];if(p==='30d')return [addDays(t,-29),t];if(p==='year')return [t.slice(0,4)+'-01-01',t];return ['0000-00-00','9999-99-99']};
+const inR=(d,[a,b])=>d>=a&&d<=b;
+
+const CATS=['Kitchen Essentials','Home Organization','Cleaning Products','Personal Care','Family & Travel'];
+const PSTAT={etudier:'À étudier',promouvoir:'À promouvoir',actif:'Actif',suspendu:'Suspendu',abandonne:'Abandonné'};
+const PSTAT_C={etudier:'info',promouvoir:'warn',actif:'good',suspendu:'bad',abandonne:''};
+const NETS=['Facebook','Instagram','TikTok','YouTube','Pinterest'];
+const NET_C={Facebook:'var(--c2)',Instagram:'var(--c4)',TikTok:'var(--c5)',YouTube:'var(--c3)',Pinterest:'var(--c1)'};
+const FORMATS={video:'Vidéo',image:'Image',carrousel:'Carrousel',texte:'Texte'};
+const POSTSTAT={idee:'Idée',preparation:'En préparation',pret:'Prêt',publie:'Publié'};
+const POSTSTAT_C={idee:'',preparation:'warn',pret:'info',publie:'good'};
+const PLAT_STAT={non_inscrit:'Non inscrit',envoyee:'Candidature envoyée',approuve:'Approuvé',refuse:'Refusé'};
+const PLAT_STAT_C={non_inscrit:'',envoyee:'warn',approuve:'good',refuse:'bad'};
+const REV_STAT={pending:'En attente',approved:'Validée',paid:'Payée',declined:'Refusée'};
+const REV_STAT_C={pending:'warn',approved:'info',paid:'good',declined:'bad'};
+const EXP_CATS=['Outils & logiciels','Publicité','Création de contenu','Domaine & hébergement','Formation','Frais bancaires','Autre'];
+const CURS=['USD','EUR','GBP','CAD','HTG'];
+const PRIO={haute:'Haute',moyenne:'Moyenne',basse:'Basse'};
+const PRIO_C={haute:'bad',moyenne:'warn',basse:''};
+const COLS=[['todo','À faire'],['doing','En cours'],['done','Terminé']];
+const LIBT={video:'Idée de vidéo',script:'Script publicitaire',legende:'Légende',hashtags:'Hashtags'};
+const DEFAULT_DISCLOSURE='Some links are affiliate links. We may earn a commission from qualifying purchases.';
+
+const rng=seed=>{let s=seed;return()=>(s=(s*1664525+1013904223)%4294967296)/4294967296};
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+
+/* ============ CSV ============ */
+function parseCSV(text){
+  text=String(text).replace(/^﻿/,'');
+  const first=text.split(/\r?\n/).find(l=>l.trim())||'';
+  const cnt=c=>(first.split(c).length-1);
+  const delim=cnt(';')>cnt(',')?';':cnt('\t')>cnt(',')?'\t':',';
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;
+    else if(c===delim){row.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';rows.push(row);row=[]}
+    else f+=c}
+  if(f!==''||row.length){row.push(f);rows.push(row)}
+  const clean=rows.filter(r=>r.some(x=>String(x).trim()!==''));
+  const hi=clean.findIndex(r=>r.filter(x=>String(x).trim()!=='').length>=3);
+  if(hi<0)return {headers:[],rows:[]};
+  const headers=clean[hi].map(h=>String(h).trim());
+  return {headers,rows:clean.slice(hi+1).map(r=>headers.map((_,i)=>String(r[i]??'').trim())).filter(r=>r.some(x=>x))};
+}
+function toCSV(rows,cols){
+  const esc=v=>{v=v==null?'':String(v);return /[",\n;]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  return [cols.map(c=>esc(c.h)).join(','),...rows.map(r=>cols.map(c=>esc(typeof c.v==='function'?c.v(r):r[c.v])).join(','))].join('\n');
+}
+function num(s){
+  if(typeof s==='number')return s;
+  let t=String(s||'').replace(/[^\d,.\-]/g,'');if(!t)return 0;
+  const lc=t.lastIndexOf(','),ld=t.lastIndexOf('.');
+  if(lc>-1&&ld>-1)t=lc>ld?t.replace(/\./g,'').replace(',','.'):t.replace(/,/g,'');
+  else if(lc>-1)t=/,\d{1,2}$/.test(t)?t.replace(',','.'):t.replace(/,/g,'');
+  const n=parseFloat(t);return isNaN(n)?0:n;
+}
+function toISO(s){
+  s=String(s||'').trim();if(!s)return today();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+  let m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})/);
+  if(m){let a=+m[1],b=+m[2];const y=m[3];let mo=a,d=b;if(a>12){d=a;mo=b}return `${y}-${pad(mo)}-${pad(d)}`}
+  const t=Date.parse(s);return isNaN(t)?today():isoOf(new Date(t));
+}
+function dlBlob(name,blob){try{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}catch(e){}}
+function readFile(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsText(file)})}
+function imgToDataURL(file,max=420){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82))};im.src=r.result};r.readAsDataURL(file)})}
+
+/* ============ Données de démonstration (toutes marquées demo:true) ============ */
+function seedData(){
+  const r=rng(11),pick=a=>a[Math.floor(r()*a.length)],t=today();
+  const P=[
+    ['Reusable Water Bottle','Kitchen Essentials',19.99,4,'actif',4.8,2500,'Amazon Associates'],
+    ['Air Fryer 5.5QT','Kitchen Essentials',79.99,3,'actif',4.7,1800,'Amazon Associates'],
+    ['Blender Pro','Kitchen Essentials',49.99,4,'promouvoir',4.6,1200,'Awin'],
+    ['Wireless Headphones','Family & Travel',59.99,5,'actif',4.7,3100,'Amazon Associates'],
+    ['Kitchen Organizer','Home Organization',24.99,6,'actif',4.6,980,'Awin'],
+    ['Multi-Surface Cleaner','Cleaning Products',14.99,5,'actif',4.8,720,'Amazon Associates'],
+    ['Electric Toothbrush','Personal Care',39.99,5,'etudier',4.5,2100,'Amazon Associates'],
+  ].map(p=>({id:uid(),name:p[0],image:'',category:p[1],description:'Produit de démonstration. Remplacez-le par un vrai produit de votre catalogue.',price:p[2],merchant:p[7]==='Awin'?'Marchand démo':'Amazon',program:p[7],platform:p[7],link:'https://example.com/demo/'+slug(p[0]),rate:p[3],rating:p[5],reviews:p[6],countries:'United States',added:addDays(t,-30),status:p[4],demo:true}));
+  const revenues=[];
+  for(let a=190;a>=0;a--){
+    if(r()>.55)continue;
+    const date=addDays(t,-a),k=.6+.8*(1-a/190),gross=Math.round((4+r()*38)*k*100)/100,pr=pick(P);
+    const st=a>45?(r()<.9?'paid':'declined'):a>18?'approved':'pending';
+    revenues.push({id:uid(),date,platform:pr.platform,product:pr.name,gross,confirmed:st==='paid'||st==='approved'?gross:0,paid:st==='paid'?gross:0,currency:'USD',ref:'DEMO-'+uid().toUpperCase().slice(0,6),status:st,source:'demo',demo:true});
+  }
+  revenues.push({id:uid(),date:t,platform:'Amazon Associates',product:'Air Fryer 5.5QT',gross:41.5,confirmed:0,paid:0,currency:'USD',ref:'DEMO-TODAY1',status:'pending',source:'demo',demo:true});
+  revenues.push({id:uid(),date:t,platform:'Awin',product:'Kitchen Organizer',gross:32.5,confirmed:0,paid:0,currency:'USD',ref:'DEMO-TODAY2',status:'pending',source:'demo',demo:true});
+  const clicks=[];
+  for(let a=59;a>=0;a--){clicks.push({id:uid(),date:addDays(t,-a),platform:'Amazon Associates',clicks:Math.floor(20+r()*70),conversions:Math.floor(r()*5),source:'demo',demo:true});clicks.push({id:uid(),date:addDays(t,-a),platform:'Awin',clicks:Math.floor(8+r()*30),conversions:Math.floor(r()*3),source:'demo',demo:true})}
+  const T=[['Domaine daddysmartmarket (exemple)','Domaine & hébergement',14.99],['Hébergement web','Domaine & hébergement',12],['Outil de design','Outils & logiciels',12.99],['Publicité Meta','Publicité',25],['Montage vidéo (freelance)','Création de contenu',40],['Logiciel d’e-mailing','Outils & logiciels',15],['Banque : frais de transfert','Frais bancaires',6.5]];
+  const expenses=[];
+  lastMonths(7).forEach((mk,i)=>{const n=2+Math.floor(r()*2);for(let j=0;j<n;j++){const x=pick(T);const dd=Math.min(i===6?+t.slice(8,10):28,1+Math.floor(r()*27));expenses.push({id:uid(),date:`${mk}-${pad(dd)}`,category:x[1],description:x[0],amount:Math.round(x[2]*(.8+r()*.5)*100)/100,currency:'USD',ref:'',person:pick(['Associé 1','Associée 2']),demo:true})}});
+  const posts=[[-3,'TikTok','video','Air Fryer : 3 recettes en 5 minutes','publie',1,[4200,180,520,6]],[-2,'Instagram','carrousel','5 astuces pour ranger la cuisine','publie',0,[1900,75,210,2]],[-1,'Pinterest','image','Idées d’organisation de placard','publie',4,[870,40,65,1]],[1,'YouTube','video','Test : Blender Pro après 30 jours','preparation',2,null],[2,'Facebook','texte','Les produits de nettoyage que nous recommandons','pret',5,null],[4,'TikTok','video','Voyage en famille : l’essentiel dans le sac','idee',3,null],[6,'Instagram','image','Offre de la semaine : bouteille réutilisable','idee',0,null],[8,'Pinterest','carrousel','Salle de bain : 6 rangements malins','idee',4,null]]
+    .map(p=>({id:uid(),date:addDays(t,p[0]),time:'10:00',network:p[1],format:p[2],title:p[3],description:'Publication de démonstration.',productId:P[p[5]].id,status:p[4],url:'',views:p[6]?p[6][0]:'',clicks:p[6]?p[6][1]:'',interactions:p[6]?p[6][2]:'',conversions:p[6]?p[6][3]:'',demo:true}));
+  const library=[['video','Air Fryer : recette de 5 minutes','Plan : 1) Accroche « Dîner prêt en 5 min » 2) Préparation 3) Résultat 4) Lien en bio.'],['script','Script 20 s : Reusable Water Bottle','« Une bouteille, zéro plastique. Voici pourquoi elle remplace 3 bouteilles par semaine… »'],['legende','Légende Instagram : organisation','Une cuisine rangée, c’est 10 minutes de gagnées chaque jour. Lien dans la bio. #ad'],['hashtags','Hashtags cuisine','#kitchenessentials #homeorganization #smartchoices #betterlivingdaily #amazonfinds']].map(x=>({id:uid(),type:x[0],title:x[1],content:x[2],demo:true}));
+  const platforms=[['Awin','https://www.awin.com'],['Amazon Associates','https://affiliate-program.amazon.com'],['eBay Partner Network','https://partnernetwork.ebay.com']].map(x=>({id:uid(),name:x[0],url:x[1],status:'non_inscrit',publisherId:'',programs:'',payMethod:'',threshold:'',lastPayment:'',notes:''}));
+  const users=[{id:'u1',name:'Associé 1',profile:'commercial',email:''},{id:'u2',name:'Associée 2',profile:'finance',email:''}];
+  const tasks=[['Sélectionner 10 produits Kitchen Essentials','Comparer commissions et avis.','u1','haute',4,'doing'],['Créer le compte Awin et postuler aux programmes','','u1','haute',3,'todo'],['Préparer le tableau des dépenses du mois','Rassembler les justificatifs.','u2','moyenne',7,'todo'],['Vérifier les commissions en attente','Comparer avec les rapports des plateformes.','u2','moyenne',5,'todo'],['Publier 3 vidéos TikTok','','u1','moyenne',6,'doing'],['Définir la répartition des bénéfices','Valider les pourcentages ensemble.','u2','basse',10,'done']].map(x=>({id:uid(),title:x[0],description:x[1],owner:x[2],priority:x[3],due:addDays(t,x[4]),status:x[5],comments:''}));
+  const goals=[['Atteindre 100 USD de commissions par jour','quotidien','revenus',100,0],['Revenu hebdomadaire','hebdomadaire','revenus',500,0],['Revenu mensuel','mensuel','revenus',2000,0],['Publications par semaine','hebdomadaire','publications',3,0],['Plateformes d’affiliation approuvées','mensuel','partenaires',3,0],['Marchands partenaires contactés','mensuel','manuel',10,2]].map(x=>({id:uid(),title:x[0],period:x[1],metric:x[2],target:x[3],current:x[4]}));
+  const docs=[{id:uid(),kind:'accord',title:'Accord de collaboration (modèle indicatif)',content:'MODÈLE INDICATIF — à faire valider par un professionnel du droit avant toute signature.\n\n1. Parties : Associé 1 et Associée 2.\n2. Objet : développement de Daily Smart Market (marketing d’affiliation).\n3. Rôles : Direction commerciale et marketing / Gestion financière.\n4. Partage des résultats : 50 % / 50 % (modifiable d’un commun accord).\n5. Dépenses : toute dépense est enregistrée avec un justificatif.\n6. Révision : l’accord est revu chaque trimestre.',date:today()},{id:uid(),kind:'document',title:'Mention de transparence des liens affiliés',content:DEFAULT_DISCLOSURE,date:today()}];
+  return {v:1,demoActive:true,products:P,revenues,clicks,expenses,posts,library,platforms,users,tasks,goals,docs,logs:[],
+    integrations:{awin:{status:'manual',publisherId:'',lastSync:null,lastError:'',range:90},amazon:{status:'manual',storeTag:'',lastImport:null,lastError:''}},
+    settings:{brand:'Daily Smart Market',slogan:'Smart choices. Better everyday living.',contactEmail:'',contactPhone:'',address:'',website:'',cur:'USD',rate:132,fx:{EUR:1.08,GBP:1.27,CAD:0.73},dailyTarget:100,partners:[{name:'Associé 1',pct:50},{name:'Associée 2',pct:50}],taxPct:0,disclosure:DEFAULT_DISCLOSURE,backendUrl:'',accessKey:'',privacy:{noAnalytics:true,hideAmounts:false}}};
+}
+function loadDB(){
+  const s=seedData();
+  try{const raw=localStorage.getItem(LS);if(raw){const j=JSON.parse(raw);return {...s,...j,settings:{...s.settings,...(j.settings||{}),privacy:{...s.settings.privacy,...((j.settings||{}).privacy||{})}},integrations:{awin:{...s.integrations.awin,...((j.integrations||{}).awin||{})},amazon:{...s.integrations.amazon,...((j.integrations||{}).amazon||{})}}}}}catch(e){}
+  return s;
+}
+
+/* ============ Client backend sécurisé (aucune clé secrète ici) ============ */
+async function callBackend(settings,path,body){
+  if(!settings.backendUrl)throw new Error('NO_BACKEND');
+  const ctrl=new AbortController();const to=setTimeout(()=>ctrl.abort(),45000);
+  try{
+    const res=await fetch(settings.backendUrl.replace(/\/+$/,'')+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(settings.accessKey?{Authorization:'Bearer '+settings.accessKey}:{})},body:body?JSON.stringify(body):undefined,signal:ctrl.signal});
+    const j=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(j.error||('Erreur HTTP '+res.status));
+    return j;
+  }finally{clearTimeout(to)}
+}
+function explainErr(e){
+  if(e.message==='NO_BACKEND')return 'Aucune adresse de backend n’est renseignée.';
+  if(e.name==='AbortError')return 'Le backend n’a pas répondu à temps.';
+  if(e instanceof TypeError)return 'Backend injoignable : adresse incorrecte, serveur arrêté, origine non autorisée (CORS), ou page d’aperçu qui bloque les connexions externes.';
+  return e.message;
+}
+
+/* ============ Contexte ============ */
+const Ctx=createContext(null);
+const useApp=()=>useContext(Ctx);
+/* ============ Composants UI ============ */
+const IC={
+  home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  box:'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  mega:'M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12',
+  wallet:'M3 7a2 2 0 0 1 2-2h13v4M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2zM16 14h2',
+  users:'M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM21 20v-1a4 4 0 0 0-3-3.9M16 4.2a3.5 3.5 0 0 1 0 6.6',
+  target:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 12h.01',
+  gear:'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',
+  search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
+  plus:'M12 5v14M5 12h14',
+  edit:'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+  trash:'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6',
+  x:'M18 6 6 18M6 6l12 12',
+  check:'M20 6 9 17l-5-5',
+  download:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
+  upload:'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',
+  refresh:'M21 12a9 9 0 0 1-15.5 6.2L3 16M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M3 21v-5h5',
+  shield:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+  chev:'m6 9 6 6 6-6',
+  left:'m15 18-6-6 6-6',
+  right:'m9 18 6-6-6-6',
+  menu:'M3 6h18M3 12h18M3 18h18',
+  copy:'M9 9h11v11H9zM5 15V5a1 1 0 0 1 1-1h10',
+  alert:'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
+  clock:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+  plug:'M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4',
+  bell:'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0',
+  chart:'M3 3v18h18M7 15l4-4 3 3 5-6',
+  info:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16v-4M12 8h.01',
+  file:'M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5',
+  cal:'M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM16 2v4M8 2v4M3 10h18',
+  dollar:'M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+  trend:'m3 17 6-6 4 4 8-8M15 7h6v6',
+  cursor:'m4 4 7 17 2.5-7.5L21 11z',
+  leaf:'M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.5 2 8 0 5.5-4.8 10-10 10zM2 21c0-3 1.9-5.7 5-7',
+};
+const Icon=({n,s=18})=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={IC[n]||''}/></svg>;
+const Badge=({c='',children})=><span className={'badge '+c}>{children}</span>;
+const Note=({c='',i='info',children})=><div className={'note '+c}><Icon n={i} s={17}/><div style={{minWidth:0}}>{children}</div></div>;
+const Empty=({icon='box',title,children})=><div className="empty"><Icon n={icon} s={30}/><b style={{color:'var(--fg)'}}>{title}</b><span>{children}</span></div>;
+const Tabs=({tabs,v,onChange})=><div className="tabs" role="tablist">{tabs.map(([k,l])=><button key={k} role="tab" aria-selected={v===k} className={v===k?'on':''} onClick={()=>onChange(k)}>{l}</button>)}</div>;
+const Seg=({opts,v,onChange})=><div className="seg">{opts.map(([k,l])=><button key={k} className={v===k?'on':''} onClick={()=>onChange(k)}>{l}</button>)}</div>;
+const Prog=({v})=><div className="prog" role="progressbar" aria-valuenow={Math.round(Math.min(100,v))} aria-valuemin="0" aria-valuemax="100"><i style={{width:Math.max(0,Math.min(100,v))+'%'}}/></div>;
+
+function Modal({title,onClose,wide,children}){
+  useEffect(()=>{const k=e=>e.key==='Escape'&&onClose();window.addEventListener('keydown',k);return()=>window.removeEventListener('keydown',k)},[onClose]);
+  return <div className="ov" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className={'modal'+(wide?' wide':'')} role="dialog" aria-modal="true" aria-label={title}>
+    <div className="modal-h"><h2>{title}</h2><button className="btn ghost ico-btn" onClick={onClose} aria-label="Fermer"><Icon n="x"/></button></div>{children}</div></div>;
+}
+
+function Form({fields,initial,onSubmit,onCancel,submitLabel='Enregistrer'}){
+  const [v,setV]=useState(()=>({...initial}));
+  const [err,setErr]=useState({});
+  const set=(k,x)=>setV(p=>({...p,[k]:x}));
+  const submit=e=>{e.preventDefault();const er={};
+    fields.forEach(f=>{if(f.show&&!f.show(v))return;const x=v[f.k];
+      if(f.req&&(x===undefined||x===null||x===''))er[f.k]='Champ obligatoire';
+      else if(x!==undefined&&x!==null&&x!==''){
+        if(f.type==='number'){const n=Number(x);if(isNaN(n))er[f.k]='Nombre invalide';else if(f.min!==undefined&&n<f.min)er[f.k]='Minimum : '+f.min;else if(f.max!==undefined&&n>f.max)er[f.k]='Maximum : '+f.max}
+        if(f.type==='url'&&!/^https?:\/\/\S+\.\S+/.test(x))er[f.k]='Adresse invalide (https://…)';
+        if(f.type==='email'&&!/^\S+@\S+\.\S+$/.test(x))er[f.k]='Adresse e-mail invalide'}});
+    setErr(er);if(Object.keys(er).length)return;
+    const out={...v};fields.forEach(f=>{if(f.type==='number'&&out[f.k]!==''&&out[f.k]!==undefined&&out[f.k]!==null)out[f.k]=Number(out[f.k])});onSubmit(out)};
+  const pick=async(f,file)=>{if(!file)return;try{set(f.k,await imgToDataURL(file))}catch(e){setErr(p=>({...p,[f.k]:'Image illisible'}))}};
+  return <form className="form" onSubmit={submit} noValidate>
+    {fields.filter(f=>!f.show||f.show(v)).map(f=>{
+      const id='f_'+f.k,val=v[f.k]??'';
+      let inp;
+      if(f.type==='select')inp=<select id={id} className="sel" value={val} onChange={e=>set(f.k,e.target.value)}>{!f.req&&<option value="">—</option>}{f.opts.map(o=>Array.isArray(o)?<option key={o[0]} value={o[0]}>{o[1]}</option>:<option key={o} value={o}>{o}</option>)}</select>;
+      else if(f.type==='textarea')inp=<textarea id={id} className="txt" value={val} onChange={e=>set(f.k,e.target.value)} rows={f.rows||3}/>;
+      else if(f.type==='image')inp=<div className="bar">{val&&<img src={val} alt="" style={{width:64,height:48,objectFit:'cover',borderRadius:8}}/>}<input id={id} type="file" accept="image/*" onChange={e=>pick(f,e.target.files[0])}/>{val&&<button type="button" className="btn sm" onClick={()=>set(f.k,'')}>Retirer</button>}</div>;
+      else inp=<input id={id} className="inp" type={f.type==='url'?'text':f.type||'text'} step={f.type==='number'?'any':undefined} value={val} placeholder={f.ph} onChange={e=>set(f.k,e.target.value)} inputMode={f.type==='number'?'decimal':undefined}/>;
+      return <label key={f.k} htmlFor={id} className={'lbl'+(f.full||f.type==='textarea'||f.type==='image'?' full':'')}>{f.label}{f.req?' *':''}{inp}{f.hint&&<span className="hint">{f.hint}</span>}{err[f.k]&&<span className="err">{err[f.k]}</span>}</label>})}
+    <div className="full bar" style={{justifyContent:'flex-end'}}><button type="button" className="btn" onClick={onCancel}>Annuler</button><button className="btn pri" type="submit">{submitLabel}</button></div>
+  </form>;
+}
+
+/* ============ Graphiques (SVG à la largeur réelle) ============ */
+function useWidth(){const ref=useRef(null);const [w,setW]=useState(560);useEffect(()=>{if(!ref.current)return;const ro=new ResizeObserver(e=>setW(Math.max(260,Math.floor(e[0].contentRect.width))));ro.observe(ref.current);return()=>ro.disconnect()},[]);return [ref,w]}
+function LineChart({labels,series,fmt,h=230}){
+  const [ref,W]=useWidth();const [hv,setHv]=useState(null);
+  const pl=46,pr=14,pt=12,pb=26;
+  const max=niceMax(Math.max(1,...series.flatMap(s=>s.vals)));
+  const x=i=>pl+(labels.length<2?(W-pl-pr)/2:i*(W-pl-pr)/(labels.length-1));
+  const y=v=>pt+(h-pt-pb)*(1-v/max);
+  const ticks=[0,.25,.5,.75,1].map(t=>t*max);
+  const path=s=>s.vals.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
+  return <div className="chart" ref={ref} style={{position:'relative'}}>
+    <svg width={W} height={h} role="img" aria-label={'Graphique : '+series.map(s=>s.name).join(', ')} onMouseLeave={()=>setHv(null)}>
+      {ticks.map((t,i)=><g key={i}><line x1={pl} x2={W-pr} y1={y(t)} y2={y(t)} stroke="var(--grid)" strokeDasharray={i?'3 4':''}/><text x={pl-7} y={y(t)+4} textAnchor="end" fontSize="11" fill="var(--muted)">{short(t)}</text></g>)}
+      {series.length>0&&<path d={path(series[0])+` L${x(labels.length-1)} ${y(0)} L${x(0)} ${y(0)} Z`} fill={series[0].color} opacity=".10"/>}
+      {series.map(s=><g key={s.name}><path d={path(s)} fill="none" stroke={s.color} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round"/>{s.vals.map((v,i)=>i===labels.length-1||hv===i?<circle key={i} cx={x(i)} cy={y(v)} r="4.2" fill={s.color} stroke="var(--surface)" strokeWidth="2"/>:null)}</g>)}
+      {labels.map((l,i)=><text key={i} x={x(i)} y={h-7} textAnchor="middle" fontSize="11" fill="var(--muted)">{l}</text>)}
+      {labels.map((l,i)=><rect key={i} x={x(i)-(W-pl-pr)/Math.max(1,labels.length-1)/2} y={pt} width={(W-pl-pr)/Math.max(1,labels.length-1)} height={h-pt-pb} fill="transparent" onMouseEnter={()=>setHv(i)} onTouchStart={()=>setHv(i)}/>)}
+      {hv!==null&&<line x1={x(hv)} x2={x(hv)} y1={pt} y2={h-pb} stroke="var(--muted)" strokeDasharray="3 3"/>}
+    </svg>
+    {hv!==null&&<div className="tip" style={{left:Math.min(W-70,Math.max(70,x(hv))),top:pt+20}}><b>{labels[hv]}</b>{series.map(s=><div key={s.name}><i style={{display:'inline-block',width:8,height:8,borderRadius:2,background:s.color,marginRight:6}}/>{s.name} : {fmt(s.vals[hv])}</div>)}</div>}
+    <div className="legend">{series.map(s=><span key={s.name}><i style={{background:s.color}}/>{s.name}</span>)}</div>
+  </div>;
+}
+function Donut({data,fmt}){
+  const total=sum(data,d=>d.v)||1;let acc=0;const R=52,C=2*Math.PI*R;
+  return <div className="split" style={{flexWrap:'nowrap'}}>
+    <svg width="148" height="148" viewBox="0 0 148 148" role="img" aria-label="Répartition par catégorie" style={{flex:'none'}}>
+      <circle cx="74" cy="74" r={R} fill="none" stroke="var(--surface2)" strokeWidth="24"/>
+      {data.map((d,i)=>{const len=d.v/total*C;const el=<circle key={i} cx="74" cy="74" r={R} fill="none" stroke={d.color} strokeWidth="24" strokeDasharray={`${len} ${C-len}`} strokeDashoffset={-acc} transform="rotate(-90 74 74)"/>;acc+=len;return el})}
+      <text x="74" y="72" textAnchor="middle" fontSize="12" fill="var(--muted)">Total</text><text x="74" y="90" textAnchor="middle" fontSize="15" fontWeight="800" fill="var(--fg)">{fmt(total)}</text>
+    </svg>
+    <div style={{display:'flex',flexDirection:'column',gap:6,fontSize:12.5,minWidth:0}}>{data.map(d=><div key={d.name} style={{display:'flex',gap:8,alignItems:'center'}}><i style={{width:10,height:10,borderRadius:3,background:d.color,flex:'none'}}/><span style={{minWidth:0}}>{d.name}</span><b className="num" style={{marginLeft:'auto',paddingLeft:8}}>{Math.round(d.v/total*100)} %</b></div>)}</div>
+  </div>;
+}
+function HBars({data,fmt}){
+  const max=Math.max(1,...data.map(d=>d.v));
+  return <div style={{display:'flex',flexDirection:'column',gap:11}}>{data.map(d=><div key={d.name}><div style={{display:'flex',justifyContent:'space-between',gap:8,fontSize:12.5,marginBottom:4}}><span style={{minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.name}</span><b className="num">{fmt(d.v)}</b></div><Prog v={d.v/max*100}/></div>)}</div>;
+}
+function ProductImg({p,style}){
+  const hue=(p.name.charCodeAt(0)*37+p.name.length*11)%360;
+  return <div className="pimg" style={{background:`hsl(${hue} 38% 38%)`,...style}}>{p.image?<img src={p.image} alt={p.name}/>:p.name.slice(0,2).toUpperCase()}</div>;
+}
+/* ============ Aides de calcul ============ */
+function aggRev(rows,usd){let gen=0,pend=0,conf=0,paid=0;
+  rows.forEach(r=>{if(r.status==='declined')return;const c=r.currency||'USD',g=usd(+r.gross||0,c),cf=usd(+r.confirmed||0,c),p=usd(+r.paid||0,c);gen+=g;pend+=Math.max(0,g-cf);conf+=cf;paid+=p});
+  return {gen,pend,conf,paid,toPay:Math.max(0,conf-paid)}}
+const platKey=n=>/awin/i.test(n||'')?'awin':/amazon/i.test(n||'')?'amazon':'other';
+
+function StatusBadge({st}){
+  const M={connected:['good','Connecté'],manual:['','Mode manuel'],error:['bad','Erreur de connexion'],disconnected:['','Non connecté']};
+  const [c,l]=M[st]||M.manual;return <Badge c={c}><span className="dot"/>{l}</Badge>;
+}
+
+/* ============ Tableau de bord ============ */
+function Dashboard(){
+  const {db,usd,m,go}=useApp();
+  const [per,setPer]=useState('month');
+  const rng_=periodRange(per);
+  const revs=db.revenues.filter(r=>inR(r.date,rng_)),exps=db.expenses.filter(e=>inR(e.date,rng_));
+  const A=aggRev(revs,usd),exp=sum(exps,e=>usd(+e.amount,e.currency)),net=A.gen-exp;
+  const clk=db.clicks.filter(c=>inR(c.date,rng_)),clicks=sum(clk,c=>+c.clicks||0),conv=sum(clk,c=>+c.conversions||0);
+  const t=today(),todayGen=aggRev(db.revenues.filter(r=>r.date===t),usd).gen,target=db.settings.dailyTarget||100;
+  const avg30=aggRev(db.revenues.filter(r=>inR(r.date,[addDays(t,-29),t])),usd).gen/30;
+  const months=lastMonths(6);
+  const mRev=months.map(k=>aggRev(db.revenues.filter(r=>r.date.startsWith(k)),usd).gen),mExp=months.map(k=>sum(db.expenses.filter(e=>e.date.startsWith(k)),e=>usd(+e.amount,e.currency)));
+  const prodMap=Object.fromEntries(db.products.map(p=>[p.name,p]));
+  const byCat={},byProd={};
+  revs.filter(r=>r.status!=='declined').forEach(r=>{const g=usd(+r.gross,r.currency),c=(prodMap[r.product]||{}).category||'Autre';byCat[c]=(byCat[c]||0)+g;byProd[r.product||'Sans nom']=(byProd[r.product||'Sans nom']||0)+g});
+  const colors=['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--muted)'];
+  const catData=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([name,v],i)=>({name,v,color:colors[i%6]}));
+  const topProd=Object.entries(byProd).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([name,v])=>({name,v}));
+  const activeN=db.products.filter(p=>p.status==='actif').length;
+  const hasClicks=db.clicks.length>0;
+  const K=[['Commissions générées',m(A.gen),'dollar','Hors commissions refusées'],['Confirmées',m(A.conf),'check','Validées par les plateformes'],['En attente',m(A.pend),'clock','À valider par les plateformes'],['Payées',m(A.paid),'wallet','Reçues'],['Dépenses',m(exp),'trend','Période sélectionnée'],['Bénéfice net estimé',m(net),'chart','Générées − dépenses'],['Produits actifs',activeN,'box','Statut « Actif »'],['Clics',hasClicks?clicks.toLocaleString('fr-FR'):'—','cursor',hasClicks?'Données saisies ou importées':'Aucune donnée de clics'],['Conversions',hasClicks?conv.toLocaleString('fr-FR'):'—','target',hasClicks?'Données saisies ou importées':'Aucune donnée de conversions']];
+  return <>
+    <div className="bar"><div className="grow"><h2 style={{fontSize:20}}>Vue d’ensemble de votre activité</h2><p className="sub">Les montants viennent de vos saisies, imports CSV et synchronisations.</p></div>
+      <Seg v={per} onChange={setPer} opts={[['month','Ce mois-ci'],['30d','30 jours'],['year','Année'],['all','Tout']]}/></div>
+    <div className="grid g-kpi">{K.map(([l,v,i,n])=><div className="card kpi" key={l}><div className="kpi-top"><span>{l}</span><span className="kpi-ico"><Icon n={i} s={16}/></span></div><div className="kpi-v num">{v}</div><div className="kpi-n">{n}</div></div>)}</div>
+    <div className="grid g3">
+      <div className="card"><div className="card-h"><h2>Revenus et dépenses</h2><span className="sub">6 derniers mois</span></div><LineChart labels={months.map(monthLabel)} series={[{name:'Revenus',color:'var(--c1)',vals:mRev},{name:'Dépenses',color:'var(--c3)',vals:mExp}]} fmt={m}/></div>
+      <div className="card"><div className="card-h"><h2>Objectif quotidien</h2></div>
+        <div className="kpi-v num" style={{fontSize:30}}>{m(target)}</div><div className="kpi-n" style={{marginBottom:10}}>par jour (objectif, pas un revenu garanti)</div>
+        <Prog v={todayGen/target*100}/><div className="bar" style={{justifyContent:'space-between',marginTop:8}}><b className="num">{Math.round(todayGen/target*100)} %</b><span className="sub num">Aujourd’hui : {m(todayGen)}</span></div>
+        <p className="sub num" style={{marginTop:10}}>Moyenne sur 30 jours : {m(avg30)} · écart : {m(avg30-target)}</p></div>
+    </div>
+    <div className="grid g2">
+      <div className="card"><div className="card-h"><h2>Performance des catégories</h2></div>{catData.length?<Donut data={catData} fmt={m}/>:<Empty icon="chart" title="Aucune commission sur la période">Ajoutez des revenus dans Finances.</Empty>}</div>
+      <div className="card"><div className="card-h"><h2>Meilleurs produits</h2></div>{topProd.length?<HBars data={topProd} fmt={m}/>:<Empty icon="box" title="Aucun produit performant">Les commissions apparaîtront ici.</Empty>}</div>
+    </div>
+    <div className="grid g2">
+      <div className="card"><div className="card-h"><h2>Plateformes d’affiliation</h2><button className="btn sm" onClick={()=>go('affiliation')}>Gérer</button></div>
+        {['awin','amazon'].map(k=><div key={k} className="bar" style={{padding:'9px 0',borderBottom:'1px solid var(--line)'}}><b style={{width:140}}>{k==='awin'?'Awin':'Amazon Associates'}</b><StatusBadge st={db.integrations[k].status}/><span className="sub grow" style={{textAlign:'right'}}>{k==='awin'?'Dernière synchro : ':'Dernier import CSV : '}{fmtTs(db.integrations[k].lastSync||db.integrations[k].lastImport)}</span></div>)}
+        <p className="sub" style={{marginTop:10}}>Sans compte connecté, saisissez ou importez vos données : tout fonctionne en mode manuel.</p></div>
+      <div className="card"><div className="card-h"><h2>Dernières commissions</h2><button className="btn sm" onClick={()=>go('finances')}>Voir tout</button></div>
+        <div className="tbl-wrap"><table><thead><tr><th>Date</th><th>Produit</th><th>Plateforme</th><th className="r">Montant</th><th>Statut</th></tr></thead><tbody>
+          {[...db.revenues].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(r=><tr key={r.id}><td className="num">{fmtDate(r.date)}</td><td>{r.product}</td><td>{r.platform}</td><td className="r num">{m(usd(+r.gross,r.currency))}</td><td><Badge c={REV_STAT_C[r.status]}>{REV_STAT[r.status]}</Badge></td></tr>)}
+        </tbody></table></div></div>
+    </div>
+  </>;
+}
+
+/* ============ Produits ============ */
+function productFields(db){
+  const plats=db.platforms.map(p=>p.name);
+  return [
+    {k:'name',label:'Nom du produit',req:true,full:true},
+    {k:'image',label:'Image (stockée localement)',type:'image'},
+    {k:'category',label:'Catégorie',type:'select',opts:CATS,req:true},
+    {k:'status',label:'Statut',type:'select',opts:Object.entries(PSTAT),req:true},
+    {k:'description',label:'Description',type:'textarea'},
+    {k:'price',label:'Prix de vente (USD)',type:'number',min:0,req:true},
+    {k:'rate',label:'Taux de commission (%)',type:'number',min:0,max:100,req:true},
+    {k:'platform',label:'Plateforme ou marchand',type:'select',opts:[...plats,'Autre'],req:true},
+    {k:'program',label:'Programme d’affiliation',ph:'ex. Awin – nom du marchand'},
+    {k:'merchant',label:'Marchand'},
+    {k:'link',label:'Lien affilié',type:'url',full:true,hint:'Collez le lien généré par la plateforme.'},
+    {k:'rating',label:'Note (0 à 5)',type:'number',min:0,max:5},
+    {k:'reviews',label:'Nombre d’avis',type:'number',min:0},
+    {k:'countries',label:'Pays de livraison'},
+    {k:'added',label:'Date d’ajout',type:'date'},
+  ];
+}
+function Products(){
+  const {db,set,toast,ask,m,exportData}=useApp();
+  const [q,setQ]=useState(''),[cat,setCat]=useState(''),[st,setSt]=useState(''),[pmin,setPmin]=useState(''),[pmax,setPmax]=useState(''),[cmin,setCmin]=useState('');
+  const [edit,setEdit]=useState(null),[view,setView]=useState(null);
+  const list=db.products.filter(p=>(!q||(p.name+p.description+p.merchant+p.program).toLowerCase().includes(q.toLowerCase()))&&(!cat||p.category===cat)&&(!st||p.status===st)&&(!pmin||p.price>=+pmin)&&(!pmax||p.price<=+pmax)&&(!cmin||p.rate>=+cmin));
+  const save=v=>{set('products',a=>v.id?a.map(x=>x.id===v.id?{...x,...v}:x):[{...v,id:uid(),demo:false},...a]);setEdit(null);setView(null);toast(v.id?'Produit modifié':'Produit ajouté')};
+  const del=p=>ask(`Supprimer « ${p.name} » ?`,()=>{set('products',a=>a.filter(x=>x.id!==p.id));setView(null);toast('Produit supprimé')});
+  const importCSV=async f=>{if(!f)return;try{const {headers,rows}=parseCSV(await readFile(f));const ix=n=>headers.findIndex(h=>n.test(h));
+    const c={name:ix(/^(name|nom|product|produit|title)/i),price:ix(/price|prix/i),link:ix(/link|lien|url/i),cat:ix(/categ/i),rate:ix(/rate|taux|commission/i),merchant:ix(/merchant|marchand/i),desc:ix(/desc/i)};
+    if(c.name<0){toast('Colonne « nom » introuvable dans le CSV','err');return}
+    const items=rows.map(r=>({id:uid(),name:r[c.name],image:'',category:CATS.includes(r[c.cat])?r[c.cat]:CATS[0],description:c.desc>=0?r[c.desc]:'',price:c.price>=0?num(r[c.price]):0,merchant:c.merchant>=0?r[c.merchant]:'',program:'',platform:'Autre',link:c.link>=0?r[c.link]:'',rate:c.rate>=0?num(r[c.rate]):0,rating:'',reviews:'',countries:'United States',added:today(),status:'etudier',demo:false})).filter(p=>p.name);
+    set('products',a=>[...items,...a]);toast(items.length+' produits importés')}catch(e){toast('Import impossible : fichier illisible','err')}};
+  return <>
+    <div className="bar"><div className="grow"><h2 style={{fontSize:20}}>Gestion des produits</h2><p className="sub">{db.products.length} produits · {list.length} affichés</p></div>
+      <label className="btn"><Icon n="upload" s={15}/>Importer un CSV<input type="file" accept=".csv,text/csv" hidden onChange={e=>{importCSV(e.target.files[0]);e.target.value=''}}/></label>
+      <button className="btn" onClick={()=>exportData('produits',db.products,[{h:'Nom',v:'name'},{h:'Catégorie',v:'category'},{h:'Prix USD',v:'price'},{h:'Commission %',v:'rate'},{h:'Plateforme',v:'platform'},{h:'Programme',v:'program'},{h:'Lien affilié',v:'link'},{h:'Statut',v:p=>PSTAT[p.status]},{h:'Ajouté le',v:'added'}])}><Icon n="download" s={15}/>Exporter</button>
+      <button className="btn pri" onClick={()=>setEdit({category:CATS[0],status:'etudier',platform:db.platforms[0]?.name||'Autre',countries:'United States',added:today()})}><Icon n="plus" s={15}/>Ajouter un produit</button></div>
+    <div className="card"><div className="bar">
+      <div style={{position:'relative',flex:'1 1 200px'}}><input className="inp" placeholder="Rechercher un produit…" aria-label="Rechercher" value={q} onChange={e=>setQ(e.target.value)}/></div>
+      <select className="sel" aria-label="Catégorie" value={cat} onChange={e=>setCat(e.target.value)}><option value="">Toutes catégories</option>{CATS.map(c=><option key={c}>{c}</option>)}</select>
+      <select className="sel" aria-label="Statut" value={st} onChange={e=>setSt(e.target.value)}><option value="">Tous statuts</option>{Object.entries(PSTAT).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select>
+      <input className="inp" style={{width:100,minWidth:90}} type="number" placeholder="Prix min" aria-label="Prix minimum" value={pmin} onChange={e=>setPmin(e.target.value)}/>
+      <input className="inp" style={{width:100,minWidth:90}} type="number" placeholder="Prix max" aria-label="Prix maximum" value={pmax} onChange={e=>setPmax(e.target.value)}/>
+      <input className="inp" style={{width:110,minWidth:100}} type="number" placeholder="Comm. min %" aria-label="Commission minimale" value={cmin} onChange={e=>setCmin(e.target.value)}/>
+    </div></div>
+    {list.length?<div className="pgrid">{list.map(p=><div key={p.id} className="card pcard" onClick={()=>setView(p)} tabIndex={0} onKeyDown={e=>e.key==='Enter'&&setView(p)}>
+      <ProductImg p={p}/><b>{p.name}</b><div className="bar" style={{justifyContent:'space-between'}}><b className="num">{m(p.price)}</b><span className="sub num">{p.rate}% · {m(p.price*p.rate/100)}</span></div>
+      <div className="bar" style={{justifyContent:'space-between'}}><Badge c={PSTAT_C[p.status]}>{PSTAT[p.status]}</Badge>{p.rating?<span className="sub num">★ {p.rating}{p.reviews?` (${p.reviews})`:''}</span>:null}</div>
+      <span className="sub" style={{fontSize:12}}>{p.category} · {p.platform}</span></div>)}</div>
+      :<div className="card"><Empty icon="box" title="Aucun produit trouvé">Modifiez les filtres ou ajoutez votre premier produit.</Empty></div>}
+    <p className="sub" style={{fontSize:12}}>{db.settings.disclosure}</p>
+    {edit&&<Modal title={edit.id?'Modifier le produit':'Ajouter un produit'} onClose={()=>setEdit(null)} wide><Form fields={productFields(db)} initial={edit} onSubmit={save} onCancel={()=>setEdit(null)}/></Modal>}
+    {view&&<Modal title={view.name} onClose={()=>setView(null)}>
+      <ProductImg p={view} style={{aspectRatio:'16/8'}}/>
+      <div className="bar"><Badge c={PSTAT_C[view.status]}>{PSTAT[view.status]}</Badge><Badge>{view.category}</Badge>{view.demo&&<Badge c="warn">Démo</Badge>}</div>
+      <p>{view.description||'Aucune description.'}</p>
+      <dl className="kv"><dt>Prix de vente</dt><dd className="num">{m(view.price)}</dd><dt>Commission</dt><dd className="num">{view.rate} % → {m(view.price*view.rate/100)} par vente (estimation)</dd><dt>Plateforme</dt><dd>{view.platform}</dd><dt>Programme</dt><dd>{view.program||'—'}</dd><dt>Marchand</dt><dd>{view.merchant||'—'}</dd><dt>Note</dt><dd>{view.rating?`★ ${view.rating} (${view.reviews||0} avis)`:'—'}</dd><dt>Livraison</dt><dd>{view.countries||'—'}</dd><dt>Ajouté le</dt><dd>{fmtDate(view.added)}</dd><dt>Lien affilié</dt><dd style={{wordBreak:'break-all'}}>{view.link?<a href={view.link} target="_blank" rel="noopener noreferrer">{view.link}</a>:'—'}</dd></dl>
+      <p className="sub" style={{fontSize:12}}>{db.settings.disclosure}</p>
+      <div className="bar" style={{justifyContent:'flex-end'}}>{view.link&&<button className="btn" onClick={()=>navigator.clipboard?.writeText(view.link).then(()=>toast('Lien copié'),()=>toast('Copie impossible : sélectionnez le lien','err'))}><Icon n="copy" s={15}/>Copier le lien</button>}<button className="btn dng" onClick={()=>del(view)}><Icon n="trash" s={15}/>Supprimer</button><button className="btn pri" onClick={()=>{setEdit(view);setView(null)}}><Icon n="edit" s={15}/>Modifier</button></div>
+    </Modal>}
+  </>;
+}
+/* ============ Affiliation : connexions, plateformes, imports ============ */
+function Affiliation(){
+  const [tab,setTab]=useState('conn');
+  const [preset,setPreset]=useState('Amazon Associates');
+  return <>
+    <div><h2 style={{fontSize:20}}>Programmes d’affiliation</h2><p className="sub">Connectez vos comptes via un backend sécurisé, ou travaillez en mode manuel avec des imports CSV.</p></div>
+    <Tabs v={tab} onChange={setTab} tabs={[['conn','Connexions'],['plat','Plateformes'],['import','Importer un rapport'],['log','Journal']]}/>
+    {tab==='conn'&&<Connections goImport={p=>{setPreset(p);setTab('import')}}/>}
+    {tab==='plat'&&<Platforms/>}
+    {tab==='import'&&<ImportReports preset={preset}/>}
+    {tab==='log'&&<SyncLog/>}
+  </>;
+}
+
+function Connections({goImport}){
+  const {db,set,usd,m,toast}=useApp();
+  const [connect,setConnect]=useState(null);
+  const A=k=>aggRev(db.revenues.filter(r=>platKey(r.platform)===k),usd);
+  const rows=[['awin','Awin'],['amazon','Amazon Associates']];
+  return <>
+    <Note i="shield"><b>L’application reste entièrement utilisable sans compte connecté.</b> Les clés et jetons API ne sont jamais saisis ni stockés ici : ils restent dans le fichier de configuration de votre backend. Respectez les conditions d’utilisation de chaque plateforme.</Note>
+    <div className="card"><div className="card-h"><h2>Commissions par plateforme</h2><span className="sub">Données saisies, importées ou synchronisées</span></div>
+      <div className="tbl-wrap"><table><thead><tr><th>Plateforme</th><th>Statut</th><th className="r">En attente</th><th className="r">Validées à payer</th><th className="r">Payées</th><th>Dernière synchro / import</th></tr></thead><tbody>
+        {rows.map(([k,n])=>{const a=A(k),I=db.integrations[k];return <tr key={k}><td><b>{n}</b></td><td><StatusBadge st={I.status}/></td><td className="r num">{m(a.pend)}</td><td className="r num">{m(a.toPay)}</td><td className="r num">{m(a.paid)}</td><td>{fmtTs(I.lastSync||I.lastImport)}</td></tr>})}
+      </tbody></table></div></div>
+    <div className="grid g2">
+      <AwinCard onConnect={()=>setConnect('awin')} goImport={()=>goImport('Awin')}/>
+      <AmazonCard onConnect={()=>setConnect('amazon')} goImport={()=>goImport('Amazon Associates')}/>
+    </div>
+    {connect&&<ConnectModal k={connect} onClose={()=>setConnect(null)}/>}
+  </>;
+}
+
+function addLogFn(set){return (platform,type,msg,ok)=>set('logs',a=>[{id:uid(),ts:Date.now(),platform,type,msg,ok},...a].slice(0,100))}
+
+function AwinCard({onConnect,goImport}){
+  const {db,set,toast,m,usd}=useApp();
+  const I=db.integrations.awin,connected=I.status==='connected';
+  const [busy,setBusy]=useState('');
+  const [prods,setProds]=useState(null),[sel,setSel]=useState({}),[lb,setLb]=useState(false);
+  const log=addLogFn(set);
+  const patch=p=>set('integrations',o=>({...o,awin:{...o.awin,...p}}));
+  const sync=async()=>{setBusy('sync');try{
+    const end=today(),start=addDays(end,-(I.range-1));
+    const res=await callBackend(db.settings,'/api/awin/sync',{startDate:start,endDate:end});
+    const rows=(res.transactions||[]).map(t=>{const st=/declin|delet/i.test(t.status)?'declined':/approv/i.test(t.status)?(t.paid?'paid':'approved'):'pending';
+      return {id:uid(),date:String(t.date).slice(0,10),platform:'Awin',product:t.advertiser||'Annonceur Awin',gross:+t.commission||0,confirmed:st==='approved'||st==='paid'?+t.commission||0:0,paid:st==='paid'?+t.commission||0:0,currency:t.currency||'USD',ref:'awin-'+t.id,status:st,source:'awin',demo:false}});
+    const refs=new Set(rows.map(r=>r.ref));
+    set('revenues',a=>[...rows,...a.filter(r=>!(r.source==='awin'&&refs.has(r.ref)))]);
+    const cl=(res.clicks||[]).map(c=>({id:uid(),date:c.date,platform:'Awin',clicks:+c.clicks||0,conversions:+c.conversions||0,source:'awin',demo:false}));
+    const cd=new Set(cl.map(c=>c.date));
+    set('clicks',a=>[...cl,...a.filter(x=>!(x.source==='awin'&&cd.has(x.date)))]);
+    const progs=(res.programmes||[]).map(p=>p.name).filter(Boolean);
+    if(progs.length)set('platforms',a=>a.map(p=>platKey(p.name)==='awin'?{...p,programs:progs.join(', '),status:p.status==='refuse'?p.status:'approuve'}:p));
+    patch({lastSync:Date.now(),lastError:'',status:'connected'});
+    log('Awin','Synchronisation',`${rows.length} transactions, ${cl.length} relevés de clics, ${progs.length} programmes`,true);
+    toast(`Awin : ${rows.length} transactions synchronisées`);
+  }catch(e){const msg=explainErr(e);patch({lastError:msg,status:e.message==='NO_BACKEND'?'manual':'error'});log('Awin','Synchronisation',msg,false);toast(msg,'err')}finally{setBusy('')}};
+  const loadProducts=async()=>{setBusy('prod');try{
+    const res=await callBackend(db.settings,'/api/awin/products',{});
+    const items=(res.items||[]).slice(0,200);setProds(items);setSel(Object.fromEntries(items.map((_,i)=>[i,true])));
+    log('Awin','Import produits',`${items.length} produits reçus`,true);
+  }catch(e){const msg=explainErr(e);log('Awin','Import produits',msg,false);toast(msg,'err')}finally{setBusy('')}};
+  const addProds=()=>{const chosen=prods.filter((_,i)=>sel[i]);
+    set('products',a=>[...chosen.map(x=>({id:uid(),name:x.name,image:'',category:CATS.includes(x.category)?x.category:CATS[0],description:x.description||'',price:+x.price||0,merchant:x.merchant||'',program:x.merchant?'Awin – '+x.merchant:'Awin',platform:'Awin',link:x.link||'',rate:+x.rate||0,rating:'',reviews:'',countries:'United States',added:today(),status:'etudier',demo:false})),...a]);
+    toast(chosen.length+' produits ajoutés au catalogue');setProds(null)};
+  const A=aggRev(db.revenues.filter(r=>platKey(r.platform)==='awin'),usd);
+  return <div className="card" style={{display:'flex',flexDirection:'column',gap:14}}>
+    <div className="card-h" style={{marginBottom:0}}><h2>Awin Publisher</h2><StatusBadge st={I.status}/></div>
+    <p className="sub">API officielle Awin Publisher : transactions, commissions, programmes, clics agrégés, produits via flux, liens suivis.</p>
+    <dl className="kv"><dt>Identifiant éditeur</dt><dd className="num">{I.publisherId||'—'}</dd><dt>Dernière synchronisation</dt><dd>{fmtTs(I.lastSync)}</dd><dt>Commissions Awin</dt><dd className="num">En attente {m(A.pend)} · Validées {m(A.toPay)} · Payées {m(A.paid)}</dd></dl>
+    {I.lastError&&<Note c="bad" i="alert">{I.lastError}</Note>}
+    {!connected&&<Note c="warn" i="info">Compte non connecté : mode manuel actif. Saisissez vos commissions ou importez un rapport CSV Awin.</Note>}
+    <div className="bar"><button className="btn pri" onClick={onConnect}><Icon n="plug" s={15}/>{connected?'Gérer la connexion':'Connecter mon compte'}</button>
+      <select className="sel" aria-label="Période de synchronisation" disabled={!connected} value={I.range} onChange={e=>patch({range:+e.target.value})}><option value="30">30 derniers jours</option><option value="90">90 derniers jours</option><option value="180">180 derniers jours</option></select>
+      <button className="btn" disabled={!connected||busy} onClick={sync}><Icon n="refresh" s={15}/>{busy==='sync'?'Synchronisation…':'Synchroniser'}</button></div>
+    <div className="bar"><button className="btn" disabled={!connected||busy} onClick={loadProducts}><Icon n="download" s={15}/>{busy==='prod'?'Chargement…':'Importer produits et liens'}</button>
+      <button className="btn" disabled={!connected} onClick={()=>setLb(true)}><Icon n="link" s={15}/>Générer un lien suivi</button>
+      <button className="btn" onClick={goImport}><Icon n="upload" s={15}/>Importer un rapport CSV</button></div>
+    {prods&&<Modal title="Produits reçus d’Awin" wide onClose={()=>setProds(null)}>
+      {prods.length?<><p className="sub">Sélectionnez les produits à ajouter (statut « À étudier »). Vérifiez prix, catégorie et taux de commission avant de promouvoir.</p>
+      <div className="tbl-wrap" style={{maxHeight:'50vh'}}><table><thead><tr><th/><th>Produit</th><th>Marchand</th><th className="r">Prix</th></tr></thead><tbody>{prods.map((p,i)=><tr key={i}><td><input type="checkbox" aria-label={'Choisir '+p.name} checked={!!sel[i]} onChange={e=>setSel(s=>({...s,[i]:e.target.checked}))}/></td><td>{p.name}</td><td>{p.merchant||'—'}</td><td className="r num">{p.price?`${p.price} ${p.currency||''}`:'—'}</td></tr>)}</tbody></table></div>
+      <div className="bar" style={{justifyContent:'flex-end'}}><button className="btn" onClick={()=>setProds(null)}>Annuler</button><button className="btn pri" onClick={addProds}>Ajouter {Object.values(sel).filter(Boolean).length} produits</button></div></>
+      :<Empty icon="box" title="Aucun produit reçu">Vérifiez que l’URL du flux produits est configurée dans le backend.</Empty>}
+    </Modal>}
+    {lb&&<AwinLinkModal onClose={()=>setLb(false)} log={log}/>}
+  </div>;
+}
+
+function AwinLinkModal({onClose,log}){
+  const {db,set,toast}=useApp();
+  const [name,setName]=useState(''),[adv,setAdv]=useState(''),[dest,setDest]=useState(''),[out,setOut]=useState(null),[busy,setBusy]=useState(false),[err,setErr]=useState('');
+  const go=async()=>{setErr('');if(!/^\d+$/.test(adv)||!/^https?:\/\//.test(dest)){setErr('Identifiant annonceur (chiffres) et URL de destination (https://…) requis.');return}
+    setBusy(true);try{const r=await callBackend(db.settings,'/api/awin/link',{advertiserId:+adv,destination:dest});setOut(r);log('Awin','Lien suivi','Lien généré pour l’annonceur '+adv,true)}catch(e){setErr(explainErr(e));log('Awin','Lien suivi',explainErr(e),false)}finally{setBusy(false)}};
+  const save=()=>{set('products',a=>[{id:uid(),name:name||'Produit Awin',image:'',category:CATS[0],description:'',price:0,merchant:'',program:'Awin – annonceur '+adv,platform:'Awin',link:out.shortUrl||out.url,rate:0,rating:'',reviews:'',countries:'United States',added:today(),status:'etudier',demo:false},...a]);toast('Produit enregistré avec son lien');onClose()};
+  return <Modal title="Générer un lien Awin suivi" onClose={onClose}>
+    <label className="lbl">Nom du produit (facultatif)<input className="inp" value={name} onChange={e=>setName(e.target.value)}/></label>
+    <label className="lbl">Identifiant de l’annonceur *<input className="inp" inputMode="numeric" value={adv} onChange={e=>setAdv(e.target.value)}/></label>
+    <label className="lbl">URL de destination chez l’annonceur *<input className="inp" value={dest} onChange={e=>setDest(e.target.value)} placeholder="https://…"/></label>
+    {err&&<Note c="bad" i="alert">{err}</Note>}
+    {out&&<Note c="good" i="check"><div style={{wordBreak:'break-all'}}>{out.shortUrl||out.url}</div></Note>}
+    <div className="bar" style={{justifyContent:'flex-end'}}><button className="btn" onClick={onClose}>Fermer</button>{out&&<button className="btn" onClick={save}>Enregistrer comme produit</button>}<button className="btn pri" disabled={busy} onClick={go}>{busy?'Génération…':'Générer'}</button></div>
+  </Modal>;
+}
+
+function AmazonCard({onConnect,goImport}){
+  const {db,set,toast,m,usd}=useApp();
+  const I=db.integrations.amazon;
+  const [f,setF]=useState({asin:'',name:'',price:'',rate:'',tag:I.storeTag||''}),[err,setErr]=useState('');
+  const A=aggRev(db.revenues.filter(r=>platKey(r.platform)==='amazon'),usd);
+  const add=()=>{setErr('');
+    if(!/^[A-Z0-9]{10}$/i.test(f.asin.trim())){setErr('ASIN invalide : 10 caractères (lettres et chiffres).');return}
+    if(!f.name.trim()){setErr('Nom du produit requis.');return}
+    if(!f.tag.trim()){setErr('Identifiant de suivi (tag) requis : il se trouve dans Amazon Associates.');return}
+    if(f.rate===''||isNaN(+f.rate)){setErr('Indiquez le taux de commission (%) de la catégorie.');return}
+    const link=`https://www.amazon.com/dp/${f.asin.trim().toUpperCase()}?tag=${encodeURIComponent(f.tag.trim())}`;
+    set('products',a=>[{id:uid(),name:f.name.trim(),image:'',category:CATS[0],description:'ASIN '+f.asin.trim().toUpperCase(),price:+f.price||0,merchant:'Amazon',program:'Amazon Associates',platform:'Amazon Associates',link,rate:+f.rate,rating:'',reviews:'',countries:'United States',added:today(),status:'etudier',demo:false},...a]);
+    set('integrations',o=>({...o,amazon:{...o.amazon,storeTag:f.tag.trim()}}));
+    setF({asin:'',name:'',price:'',rate:'',tag:f.tag});toast('Produit Amazon enregistré avec son lien affilié')};
+  return <div className="card" style={{display:'flex',flexDirection:'column',gap:14}}>
+    <div className="card-h" style={{marginBottom:0}}><h2>Amazon Associates</h2><StatusBadge st={I.status}/></div>
+    <p className="sub">Architecture prête pour l’API Amazon Creators, sous réserve d’éligibilité et d’autorisation d’Amazon. Les commissions se renseignent par rapports CSV.</p>
+    <Note c="warn" i="info"><b>Aucune synchronisation automatique des commissions Amazon.</b> Elles proviennent uniquement des rapports CSV que vous importez depuis Associates Central, ou de votre saisie manuelle.</Note>
+    <dl className="kv"><dt>Identifiant de suivi</dt><dd>{I.storeTag||'—'}</dd><dt>Dernier import CSV</dt><dd>{fmtTs(I.lastImport)}</dd><dt>Commissions Amazon</dt><dd className="num">En attente {m(A.pend)} · Validées {m(A.toPay)} · Payées {m(A.paid)}</dd></dl>
+    {I.lastError&&<Note c="bad" i="alert">{I.lastError}</Note>}
+    <div className="bar"><button className="btn pri" onClick={onConnect}><Icon n="plug" s={15}/>{I.status==='connected'?'Gérer la connexion':'Connecter mon compte'}</button><button className="btn" onClick={goImport}><Icon n="upload" s={15}/>Importer un rapport CSV</button></div>
+    <div style={{borderTop:'1px solid var(--line)',paddingTop:12}}><b style={{fontSize:13}}>Enregistrer un produit et son lien affilié</b>
+      <div className="form" style={{marginTop:10}}>
+        <label className="lbl">ASIN<input className="inp" value={f.asin} onChange={e=>setF({...f,asin:e.target.value})} placeholder="B0XXXXXXXX"/></label>
+        <label className="lbl">Identifiant de suivi (tag)<input className="inp" value={f.tag} onChange={e=>setF({...f,tag:e.target.value})} placeholder="monsite-20"/></label>
+        <label className="lbl full">Nom du produit<input className="inp" value={f.name} onChange={e=>setF({...f,name:e.target.value})}/></label>
+        <label className="lbl">Prix (USD)<input className="inp" inputMode="decimal" value={f.price} onChange={e=>setF({...f,price:e.target.value})}/></label>
+        <label className="lbl">Commission (%)<input className="inp" inputMode="decimal" value={f.rate} onChange={e=>setF({...f,rate:e.target.value})}/></label>
+        {err&&<div className="full"><Note c="bad" i="alert">{err}</Note></div>}
+        <div className="full"><button className="btn" onClick={add}><Icon n="plus" s={15}/>Enregistrer le produit</button></div></div></div>
+  </div>;
+}
+
+function ConnectModal({k,onClose}){
+  const {db,set,toast}=useApp();
+  const isAw=k==='awin',I=db.integrations[k];
+  const [url,setUrl]=useState(db.settings.backendUrl||''),[key,setKey]=useState(db.settings.accessKey||''),[pid,setPid]=useState(I.publisherId||''),[tag,setTag]=useState(I.storeTag||'');
+  const [res,setRes]=useState(null),[busy,setBusy]=useState(false);
+  const log=addLogFn(set);
+  const saveBackend=()=>set('settings',s=>({...s,backendUrl:url.trim(),accessKey:key.trim()}));
+  const test=async()=>{setRes(null);
+    if(!/^https:\/\/\S+/.test(url.trim())&&!/^http:\/\/localhost/.test(url.trim())){setRes({ok:false,msg:'Indiquez l’adresse du backend (https://… ou http://localhost:…).'});return}
+    if(isAw&&!/^\d+$/.test(pid.trim())){setRes({ok:false,msg:'L’identifiant éditeur Awin contient uniquement des chiffres.'});return}
+    const s={...db.settings,backendUrl:url.trim(),accessKey:key.trim()};setBusy(true);
+    try{const r=await callBackend(s,isAw?'/api/awin/status':'/api/amazon/status');saveBackend();
+      if(isAw){if(!r.connected)throw new Error(r.error||'Le backend n’a pas pu valider le jeton Awin.');set('integrations',o=>({...o,awin:{...o.awin,status:'connected',publisherId:pid.trim(),lastError:''}}));log('Awin','Connexion','Connexion validée par le backend',true);setRes({ok:true,msg:'Compte Awin connecté. Vous pouvez synchroniser.'});toast('Awin connecté')}
+      else{set('integrations',o=>({...o,amazon:{...o.amazon,storeTag:tag.trim(),status:r.available?'connected':'manual',lastError:''}}));log('Amazon','Connexion',r.message||'Statut Creators API reçu',true);setRes({ok:!!r.available,msg:r.message||(r.available?'Creators API disponible côté backend.':'Creators API non disponible : mode manuel conservé.')})}
+    }catch(e){const msg=explainErr(e);saveBackend();set('integrations',o=>({...o,[k]:{...o[k],status:'error',lastError:msg}}));log(isAw?'Awin':'Amazon','Connexion',msg,false);setRes({ok:false,msg})}finally{setBusy(false)}};
+  const manual=()=>{set('integrations',o=>({...o,[k]:{...o[k],status:'manual',lastError:'',...(isAw?{publisherId:pid.trim()}:{storeTag:tag.trim()})}}));toast('Mode manuel activé');onClose()};
+  return <Modal title={`Connecter ${isAw?'Awin':'Amazon Associates'}`} onClose={onClose} wide>
+    <Note c="good" i="shield">Aucune clé secrète n’est saisie ni stockée dans cette application. Elles restent dans le fichier <span className="mono">.env</span> de votre serveur.</Note>
+    <ol className="steps">
+      <li>Déployez le dossier <b>dsmm-backend</b> (Node.js) chez l’hébergeur de votre choix et ouvrez son adresse en HTTPS.</li>
+      {isAw?<li>Dans Awin, générez votre jeton API (« API Credentials ») puis renseignez <span className="mono">AWIN_API_TOKEN</span> et <span className="mono">AWIN_PUBLISHER_ID</span> dans le <span className="mono">.env</span> du serveur.</li>
+        :<li>L’API Amazon Creators n’est accessible que si votre compte Associates y est éligible et autorisé par Amazon. Les identifiants vont dans le <span className="mono">.env</span> du serveur, jamais ici.</li>}
+      <li>Renseignez l’adresse du backend ci-dessous, puis testez la connexion.</li>
+    </ol>
+    <div className="form">
+      <label className="lbl full">Adresse du backend<input className="inp" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://mon-backend.example.com"/></label>
+      <label className="lbl">Clé d’accès à votre backend (facultatif)<input className="inp" type="password" autoComplete="off" value={key} onChange={e=>setKey(e.target.value)}/><span className="hint">Il s’agit de la clé <span className="mono">APP_ACCESS_KEY</span> de votre propre serveur, pas d’une clé Awin ou Amazon.</span></label>
+      {isAw?<label className="lbl">Identifiant éditeur Awin<input className="inp" inputMode="numeric" value={pid} onChange={e=>setPid(e.target.value)}/></label>
+        :<label className="lbl">Identifiant de suivi Amazon (tag)<input className="inp" value={tag} onChange={e=>setTag(e.target.value)} placeholder="monsite-20"/></label>}
+    </div>
+    {res&&<Note c={res.ok?'good':'bad'} i={res.ok?'check':'alert'}>{res.msg}{!res.ok&&<><br/>Vous pouvez continuer en mode manuel : saisie et imports CSV restent disponibles.</>}</Note>}
+    {!isAw&&<Note i="info">Même avec la Creators API, les commissions Amazon ne sont pas synchronisées automatiquement ici : importez vos rapports CSV.</Note>}
+    <div className="bar" style={{justifyContent:'flex-end'}}><button className="btn" onClick={manual}>Continuer en mode manuel</button><button className="btn pri" disabled={busy} onClick={test}>{busy?'Test en cours…':'Tester la connexion'}</button></div>
+  </Modal>;
+}
+
+/* --- Import de rapports CSV (Awin, Amazon, autre) --- */
+function ImportReports({preset}){
+  const {db,set,toast}=useApp();
+  const [plat,setPlat]=useState(preset),[data,setData]=useState(null),[map,setMap]=useState({}),[defSt,setDefSt]=useState('approved'),[cur,setCur]=useState('USD'),[fname,setFname]=useState('');
+  const log=addLogFn(set);
+  const guess=h=>{const f=(...res)=>{for(const re of res){const i=h.findIndex(x=>re.test(x));if(i>=0)return i}return ''};
+    return {date:f(/date/i,/jour|day/i),product:f(/^(product|name|title|produit|nom)/i,/advertiser|annonceur|merchant|marchand/i,/name|title/i),amount:f(/earning|commission/i,/ad fees|revenue|revenu|gain/i),ref:f(/transaction.?id|order.?id|^id$|ref/i,/asin/i),status:f(/status|statut/i),clicks:f(/clic|click/i),conv:f(/conversion|ordered items|orders|items|qty/i)}};
+  const onFile=async file=>{if(!file)return;try{const d=parseCSV(await readFile(file));if(!d.headers.length)throw new Error('vide');setData(d);setMap(guess(d.headers));setFname(file.name)}catch(e){toast('Fichier CSV illisible ou vide','err')}};
+  const sel=k=><select className="sel" aria-label={k} value={map[k]??''} onChange={e=>setMap({...map,[k]:e.target.value===''?'':+e.target.value})}><option value="">— ignorer —</option>{data.headers.map((h,i)=><option key={i} value={i}>{h||'(colonne '+(i+1)+')'}</option>)}</select>;
+  const stOf=s=>/declin|refus|reject|cancel|annul/i.test(s)?'declined':/paid|pay/i.test(s)?'paid':/approv|valid|confirm|locked|final/i.test(s)?'approved':/pend|attente|open/i.test(s)?'pending':defSt;
+  const run=()=>{
+    if(map.amount===''&&map.clicks===''){toast('Associez au moins la colonne commission ou la colonne clics','err');return}
+    const pk=platKey(plat),pname=plat;let added=0,skipped=0,clickRows=0;
+    if(map.amount!==''&&map.amount!==undefined){
+      const exist=new Set(db.revenues.filter(r=>platKey(r.platform)===pk).map(r=>r.ref));const batch=[];
+      data.rows.forEach(r=>{const gross=num(r[map.amount]);if(!gross)return;const date=map.date!==''?toISO(r[map.date]):today(),product=map.product!==''?r[map.product]:'',st=map.status!==''?stOf(r[map.status]):defSt;
+        const ref=(map.ref!==''&&r[map.ref]?'csv-'+r[map.ref]:'csv-'+[date,product,gross].join('|'))+(map.ref!==''?'|'+date+'|'+gross:'');
+        if(exist.has(ref)){skipped++;return}exist.add(ref);
+        batch.push({id:uid(),date,platform:pname,product,gross,confirmed:st==='approved'||st==='paid'?gross:0,paid:st==='paid'?gross:0,currency:cur,ref,status:st,source:pk==='amazon'?'amazon-csv':pk==='awin'?'awin-csv':'csv',demo:false})});
+      set('revenues',a=>[...batch,...a]);added=batch.length}
+    if(map.clicks!==''&&map.clicks!==undefined&&map.date!==''){
+      const byD={};data.rows.forEach(r=>{const d=toISO(r[map.date]);byD[d]=byD[d]||{c:0,v:0};byD[d].c+=num(r[map.clicks]);if(map.conv!==''&&map.conv!==undefined)byD[d].v+=num(r[map.conv])});
+      const cr=Object.entries(byD).map(([date,x])=>({id:uid(),date,platform:pname,clicks:x.c,conversions:x.v,source:'csv',demo:false}));clickRows=cr.length;
+      set('clicks',a=>[...cr,...a.filter(x=>!(x.source==='csv'&&x.platform===pname&&cr.some(n=>n.date===x.date)))])}
+    if(pk!=='other')set('integrations',o=>({...o,[pk]:{...o[pk],lastImport:Date.now()}}));
+    log(pname,'Import CSV',`${fname} : ${added} commissions ajoutées, ${skipped} doublons ignorés, ${clickRows} jours de clics`,true);
+    toast(`${added} commissions importées${skipped?` · ${skipped} doublons ignorés`:''}`);setData(null)};
+  return <div className="card" style={{display:'flex',flexDirection:'column',gap:14}}>
+    <div className="card-h" style={{marginBottom:0}}><h2>Importer un rapport de performance (CSV)</h2></div>
+    <p className="sub">Exportez le rapport depuis votre compte (Awin : rapport de transactions ; Amazon Associates : rapport de gains), puis importez-le ici. Les doublons sont ignorés si vous réimportez le même fichier.</p>
+    <div className="bar"><label className="lbl" style={{flexDirection:'row',alignItems:'center'}}>Plateforme<select className="sel" value={plat} onChange={e=>setPlat(e.target.value)} style={{width:'auto'}}>{[...new Set([...db.platforms.map(p=>p.name),'Awin','Amazon Associates'])].map(p=><option key={p}>{p}</option>)}</select></label>
+      <label className="btn pri"><Icon n="upload" s={15}/>Choisir un fichier CSV<input type="file" accept=".csv,text/csv,text/plain" hidden onChange={e=>{onFile(e.target.files[0]);e.target.value=''}}/></label></div>
+    {platKey(plat)==='amazon'&&<Note c="warn" i="info">Les commissions Amazon sont importées uniquement depuis vos rapports. Aucune synchronisation automatique n’existe sans API autorisée.</Note>}
+    {data&&<>
+      <div className="form">
+        {[['date','Date'],['product','Produit ou annonceur'],['amount','Commission'],['ref','Référence'],['status','Statut'],['clicks','Clics'],['conv','Conversions']].map(([k,l])=><label key={k} className="lbl">{l}{sel(k)}</label>)}
+        <label className="lbl">Statut par défaut<select className="sel" value={defSt} onChange={e=>setDefSt(e.target.value)}><option value="pending">En attente</option><option value="approved">Validée</option><option value="paid">Payée</option></select></label>
+        <label className="lbl">Devise du fichier<select className="sel" value={cur} onChange={e=>setCur(e.target.value)}>{CURS.map(c=><option key={c}>{c}</option>)}</select></label>
+      </div>
+      <div className="tbl-wrap"><table><thead><tr>{data.headers.map((h,i)=><th key={i}>{h}</th>)}</tr></thead><tbody>{data.rows.slice(0,5).map((r,i)=><tr key={i}>{r.map((c,j)=><td key={j}>{c}</td>)}</tr>)}</tbody></table></div>
+      <p className="sub">{data.rows.length} lignes détectées dans « {fname} ». Aperçu des 5 premières.</p>
+      <div className="bar" style={{justifyContent:'flex-end'}}><button className="btn" onClick={()=>setData(null)}>Annuler</button><button className="btn pri" onClick={run}>Importer {data.rows.length} lignes</button></div></>}
+  </div>;
+}
+
+function SyncLog(){
+  const {db,set,ask}=useApp();
+  return <div className="card"><div className="card-h"><h2>Journal des connexions et imports</h2>{db.logs.length>0&&<button className="btn sm" onClick={()=>ask('Effacer le journal ?',()=>set('logs',[]))}>Effacer</button>}</div>
+    {db.logs.length?<div className="tbl-wrap"><table><thead><tr><th>Date</th><th>Plateforme</th><th>Action</th><th>Résultat</th></tr></thead><tbody>{db.logs.map(l=><tr key={l.id}><td className="num" style={{whiteSpace:'nowrap'}}>{fmtTs(l.ts)}</td><td>{l.platform}</td><td>{l.type}</td><td><Badge c={l.ok?'good':'bad'}>{l.ok?'OK':'Échec'}</Badge> {l.msg}</td></tr>)}</tbody></table></div>:<Empty icon="clock" title="Aucune activité">Les connexions, synchronisations et imports apparaîtront ici.</Empty>}</div>;
+}
+
+/* --- Plateformes (fiches de compte) --- */
+function Platforms(){
+  const {db,set,toast,ask}=useApp();
+  const [edit,setEdit]=useState(null);
+  const F=[{k:'name',label:'Nom de la plateforme',req:true},{k:'url',label:'Adresse du site',type:'url'},{k:'status',label:'Statut du compte',type:'select',opts:Object.entries(PLAT_STAT),req:true},{k:'publisherId',label:'Identifiant éditeur',hint:'Identifiant public uniquement.'},{k:'programs',label:'Programmes partenaires acceptés',type:'textarea'},{k:'payMethod',label:'Méthode de paiement déclarée'},{k:'threshold',label:'Seuil de paiement (USD)',type:'number',min:0},{k:'lastPayment',label:'Date du dernier paiement',type:'date'},{k:'notes',label:'Notes',type:'textarea'}];
+  const save=v=>{set('platforms',a=>v.id?a.map(x=>x.id===v.id?v:x):[...a,{...v,id:uid()}]);setEdit(null);toast('Plateforme enregistrée')};
+  return <><Note c="warn" i="shield">Ne saisissez jamais de mot de passe ni de clé secrète dans cette application. Seuls des identifiants publics et des notes y sont stockés.</Note>
+    <div className="bar"><div className="grow sub">{db.platforms.length} plateformes</div><button className="btn pri" onClick={()=>setEdit({status:'non_inscrit'})}><Icon n="plus" s={15}/>Ajouter une plateforme</button></div>
+    <div className="grid g2">{db.platforms.map(p=><div className="card" key={p.id}><div className="card-h"><h2>{p.name}</h2><Badge c={PLAT_STAT_C[p.status]}>{PLAT_STAT[p.status]}</Badge></div>
+      <dl className="kv"><dt>Site</dt><dd style={{wordBreak:'break-all'}}>{p.url?<a href={p.url} target="_blank" rel="noopener noreferrer">{p.url}</a>:'—'}</dd><dt>Identifiant éditeur</dt><dd>{p.publisherId||'—'}</dd><dt>Programmes acceptés</dt><dd>{p.programs||'—'}</dd><dt>Paiement</dt><dd>{p.payMethod||'—'}{p.threshold?` · seuil ${p.threshold} USD`:''}</dd><dt>Dernier paiement</dt><dd>{fmtDate(p.lastPayment)}</dd><dt>Notes</dt><dd>{p.notes||'—'}</dd></dl>
+      <div className="bar" style={{justifyContent:'flex-end',marginTop:12}}><button className="btn sm dng" onClick={()=>ask(`Supprimer « ${p.name} » ?`,()=>{set('platforms',a=>a.filter(x=>x.id!==p.id));toast('Plateforme supprimée')})}><Icon n="trash" s={14}/>Supprimer</button><button className="btn sm" onClick={()=>setEdit(p)}><Icon n="edit" s={14}/>Modifier</button></div></div>)}</div>
+    {edit&&<Modal title={edit.id?'Modifier la plateforme':'Ajouter une plateforme'} onClose={()=>setEdit(null)}><Form fields={F} initial={edit} onSubmit={save} onCancel={()=>setEdit(null)}/></Modal>}</>;
+}
+/* ============ Marketing ============ */
+function Marketing(){
+  const {db,set,toast,ask,exportData}=useApp();
+  const [tab,setTab]=useState('cal');
+  const [edit,setEdit]=useState(null),[libEdit,setLibEdit]=useState(null);
+  const [mo,setMo]=useState(()=>{const d=new Date();return {y:d.getFullYear(),m:d.getMonth()}});
+  const [wk,setWk]=useState(()=>{const d=new Date();const k=(d.getDay()+6)%7;return addDays(today(),-k)});
+  const prodName=id=>(db.products.find(p=>p.id===id)||{}).name||'—';
+  const F=[{k:'title',label:'Titre',req:true,full:true},{k:'description',label:'Description',type:'textarea'},{k:'network',label:'Réseau social',type:'select',opts:NETS,req:true},{k:'format',label:'Format',type:'select',opts:Object.entries(FORMATS),req:true},{k:'productId',label:'Produit associé',type:'select',opts:db.products.map(p=>[p.id,p.name])},{k:'status',label:'Statut',type:'select',opts:Object.entries(POSTSTAT),req:true},{k:'date',label:'Date de publication',type:'date',req:true},{k:'time',label:'Heure',type:'time'},{k:'url',label:'Lien vers la publication',type:'url',full:true},{k:'views',label:'Vues',type:'number',min:0},{k:'clicks',label:'Clics',type:'number',min:0},{k:'interactions',label:'Interactions',type:'number',min:0},{k:'conversions',label:'Conversions',type:'number',min:0}];
+  const save=v=>{set('posts',a=>v.id?a.map(x=>x.id===v.id?v:x):[...a,{...v,id:uid(),demo:false}]);setEdit(null);toast('Publication enregistrée')};
+  const delPost=p=>ask(`Supprimer « ${p.title} » ?`,()=>{set('posts',a=>a.filter(x=>x.id!==p.id));setEdit(null);toast('Publication supprimée')});
+  const newPost=date=>setEdit({date,time:'10:00',network:'Instagram',format:'image',status:'idee'});
+  const chip=p=><button key={p.id} className="chip" style={{background:NET_C[p.network]}} title={`${p.time||''} ${p.network} · ${p.title}`} onClick={e=>{e.stopPropagation();setEdit(p)}}>{p.time||''} {p.title}</button>;
+  const first=new Date(mo.y,mo.m,1),off=(first.getDay()+6)%7,dim=new Date(mo.y,mo.m+1,0).getDate();
+  const cells=[];for(let i=0;i<42;i++){const d=new Date(mo.y,mo.m,1-off+i);cells.push({iso:isoOf(d),n:d.getDate(),out:d.getMonth()!==mo.m})}
+  const rows=cells.slice(35).every(c=>c.out)?cells.slice(0,35):cells;
+  const shiftMo=n=>setMo(({y,m})=>{const d=new Date(y,m+n,1);return {y:d.getFullYear(),m:d.getMonth()}});
+  const LF=[{k:'type',label:'Type',type:'select',opts:Object.entries(LIBT),req:true},{k:'title',label:'Titre',req:true},{k:'content',label:'Contenu',type:'textarea',rows:6,req:true}];
+  const saveLib=v=>{set('library',a=>v.id?a.map(x=>x.id===v.id?v:x):[{...v,id:uid(),demo:false},...a]);setLibEdit(null);toast('Contenu enregistré')};
+  const pub=db.posts.filter(p=>p.status==='publie');
+  return <>
+    <div className="bar"><div className="grow"><h2 style={{fontSize:20}}>Marketing et réseaux sociaux</h2><p className="sub">Planifiez, préparez et suivez vos publications.</p></div><button className="btn pri" onClick={()=>newPost(today())}><Icon n="plus" s={15}/>Nouvelle publication</button></div>
+    <Tabs v={tab} onChange={setTab} tabs={[['cal','Calendrier'],['week','Semaine'],['lib','Bibliothèque'],['res','Résultats']]}/>
+    {tab==='cal'&&<div className="card"><div className="card-h"><div className="bar"><button className="btn ico-btn" aria-label="Mois précédent" onClick={()=>shiftMo(-1)}><Icon n="left"/></button><h2 style={{minWidth:130,textAlign:'center'}}>{MONTHS[mo.m]} {mo.y}</h2><button className="btn ico-btn" aria-label="Mois suivant" onClick={()=>shiftMo(1)}><Icon n="right"/></button></div>
+      <div className="legend" style={{margin:0}}>{NETS.map(n=><span key={n}><i style={{background:NET_C[n]}}/>{n}</span>)}</div></div>
+      <div className="cal">{['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d=><div className="h" key={d}>{d}</div>)}
+        {rows.map(c=><div key={c.iso} className={'d'+(c.out?' out':'')+(c.iso===today()?' today':'')} onClick={()=>newPost(c.iso)} title="Ajouter une publication"><span className="n">{c.n}</span>{db.posts.filter(p=>p.date===c.iso).sort((a,b)=>(a.time||'').localeCompare(b.time||'')).map(chip)}</div>)}</div></div>}
+    {tab==='week'&&<div className="card"><div className="card-h"><div className="bar"><button className="btn ico-btn" aria-label="Semaine précédente" onClick={()=>setWk(addDays(wk,-7))}><Icon n="left"/></button><h2>Semaine du {fmtDate(wk)}</h2><button className="btn ico-btn" aria-label="Semaine suivante" onClick={()=>setWk(addDays(wk,7))}><Icon n="right"/></button></div></div>
+      <div className="wk">{[0,1,2,3,4,5,6].map(i=>{const d=addDays(wk,i);return <div key={d}><b style={{fontSize:12}}>{['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][i]} {d.slice(8)}</b>{db.posts.filter(p=>p.date===d).sort((a,b)=>(a.time||'').localeCompare(b.time||'')).map(p=><button key={p.id} className="kcard" style={{textAlign:'left',cursor:'pointer'}} onClick={()=>setEdit(p)}><span className="badge" style={{background:NET_C[p.network],color:'#fff',alignSelf:'flex-start'}}>{p.network}</span><b style={{fontSize:12.5}}>{p.title}</b><span className="sub" style={{fontSize:11.5}}>{p.time} · {FORMATS[p.format]}</span><Badge c={POSTSTAT_C[p.status]}>{POSTSTAT[p.status]}</Badge></button>)}<button className="btn sm ghost" onClick={()=>newPost(d)}><Icon n="plus" s={13}/>Ajouter</button></div>})}</div></div>}
+    {tab==='lib'&&<><div className="bar"><div className="grow sub">Idées de vidéos, scripts, légendes et hashtags</div><button className="btn pri" onClick={()=>setLibEdit({type:'video'})}><Icon n="plus" s={15}/>Nouveau contenu</button></div>
+      {db.library.length?<div className="grid g2">{db.library.map(l=><div className="card" key={l.id}><div className="card-h"><h2>{l.title}</h2><Badge c="info">{LIBT[l.type]}</Badge></div><p style={{whiteSpace:'pre-wrap'}}>{l.content}</p><div className="bar" style={{justifyContent:'flex-end',marginTop:12}}><button className="btn sm" onClick={()=>navigator.clipboard?.writeText(l.content).then(()=>toast('Copié'),()=>toast('Copie impossible','err'))}><Icon n="copy" s={14}/>Copier</button><button className="btn sm" onClick={()=>setLibEdit(l)}><Icon n="edit" s={14}/>Modifier</button><button className="btn sm dng" onClick={()=>ask(`Supprimer « ${l.title} » ?`,()=>{set('library',a=>a.filter(x=>x.id!==l.id));toast('Contenu supprimé')})}><Icon n="trash" s={14}/></button></div></div>)}</div>:<div className="card"><Empty icon="file" title="Bibliothèque vide">Ajoutez vos idées et scripts.</Empty></div>}</>}
+    {tab==='res'&&<><div className="grid g-kpi">{NETS.map(n=>{const ps=pub.filter(p=>p.network===n);return <div className="card kpi" key={n}><div className="kpi-top"><span style={{color:NET_C[n],fontWeight:800}}>{n}</span><span>{ps.length} publiée(s)</span></div><div className="kpi-v num" style={{fontSize:20}}>{sum(ps,p=>+p.views||0).toLocaleString('fr-FR')}</div><div className="kpi-n num">vues · {sum(ps,p=>+p.clicks||0)} clics · {sum(ps,p=>+p.conversions||0)} conversions</div></div>})}</div>
+      <div className="card"><div className="card-h"><h2>Publications publiées</h2><button className="btn sm" onClick={()=>exportData('publications',db.posts,[{h:'Date',v:'date'},{h:'Réseau',v:'network'},{h:'Titre',v:'title'},{h:'Format',v:p=>FORMATS[p.format]},{h:'Statut',v:p=>POSTSTAT[p.status]},{h:'Vues',v:'views'},{h:'Clics',v:'clicks'},{h:'Interactions',v:'interactions'},{h:'Conversions',v:'conversions'}])}><Icon n="download" s={14}/>Exporter</button></div>
+        {pub.length?<div className="tbl-wrap"><table><thead><tr><th>Date</th><th>Réseau</th><th>Titre</th><th>Produit</th><th className="r">Vues</th><th className="r">Clics</th><th className="r">Interactions</th><th className="r">Conv.</th></tr></thead><tbody>{pub.sort((a,b)=>b.date.localeCompare(a.date)).map(p=><tr key={p.id} style={{cursor:'pointer'}} onClick={()=>setEdit(p)}><td className="num">{fmtDate(p.date)}</td><td>{p.network}</td><td>{p.title}</td><td>{prodName(p.productId)}</td><td className="r num">{p.views||'—'}</td><td className="r num">{p.clicks||'—'}</td><td className="r num">{p.interactions||'—'}</td><td className="r num">{p.conversions||'—'}</td></tr>)}</tbody></table></div>:<Empty icon="chart" title="Aucune publication publiée">Passez une publication au statut « Publié » et saisissez ses résultats.</Empty>}</div></>}
+    {edit&&<Modal title={edit.id?'Modifier la publication':'Nouvelle publication'} wide onClose={()=>setEdit(null)}><Form fields={F} initial={edit} onSubmit={save} onCancel={()=>setEdit(null)}/>{edit.id&&<div><button className="btn dng sm" onClick={()=>delPost(edit)}><Icon n="trash" s={14}/>Supprimer cette publication</button></div>}</Modal>}
+    {libEdit&&<Modal title={libEdit.id?'Modifier le contenu':'Nouveau contenu'} onClose={()=>setLibEdit(null)}><Form fields={LF} initial={libEdit} onSubmit={saveLib} onCancel={()=>setLibEdit(null)}/></Modal>}
+  </>;
+}
+
+/* ============ Finances ============ */
+function Finances(){
+  const {db,set,usd,m,toast,ask,exportData}=useApp();
+  const [tab,setTab]=useState('ov');
+  const [redit,setRedit]=useState(null),[eedit,setEedit]=useState(null);
+  const [fp,setFp]=useState(''),[fs,setFs]=useState(''),[q,setQ]=useState('');
+  const [per,setPer]=useState('month'),[base,setBase]=useState('paid');
+  const [rep,setRep]=useState('annuel'),[year,setYear]=useState(today().slice(0,4)),[rmonth,setRmonth]=useState(today().slice(0,7));
+  const platNames=db.platforms.map(p=>p.name);
+  const RF=[{k:'date',label:'Date',type:'date',req:true},{k:'platform',label:'Plateforme',type:'select',opts:[...new Set([...platNames,'Autre'])],req:true},{k:'product',label:'Produit',full:true},{k:'gross',label:'Commission brute',type:'number',min:0,req:true},{k:'confirmed',label:'Commission confirmée',type:'number',min:0},{k:'paid',label:'Commission payée',type:'number',min:0},{k:'currency',label:'Devise',type:'select',opts:CURS,req:true},{k:'status',label:'Statut',type:'select',opts:Object.entries(REV_STAT),req:true},{k:'ref',label:'Référence de transaction',full:true}];
+  const EF=[{k:'date',label:'Date',type:'date',req:true},{k:'category',label:'Catégorie',type:'select',opts:EXP_CATS,req:true},{k:'description',label:'Description',req:true,full:true},{k:'amount',label:'Montant',type:'number',min:0,req:true},{k:'currency',label:'Devise',type:'select',opts:CURS,req:true},{k:'ref',label:'Justificatif ou référence'},{k:'person',label:'Dépense effectuée par',type:'select',opts:db.users.map(u=>u.name)}];
+  const saveR=v=>{const o={...v};if(o.status==='approved'&&!o.confirmed)o.confirmed=o.gross;if(o.status==='paid'){if(!o.confirmed)o.confirmed=o.gross;if(!o.paid)o.paid=o.gross}if(o.status==='pending'){o.confirmed=0;o.paid=0}o.confirmed=o.confirmed||0;o.paid=o.paid||0;
+    set('revenues',a=>o.id?a.map(x=>x.id===o.id?o:x):[{...o,id:uid(),source:'manuel',demo:false},...a]);setRedit(null);toast('Revenu enregistré')};
+  const saveE=v=>{set('expenses',a=>v.id?a.map(x=>x.id===v.id?v:x):[{...v,id:uid(),demo:false},...a]);setEedit(null);toast('Dépense enregistrée')};
+  const revs=[...db.revenues].filter(r=>(!fp||r.platform===fp)&&(!fs||r.status===fs)&&(!q||(r.product+r.ref).toLowerCase().includes(q.toLowerCase()))).sort((a,b)=>b.date.localeCompare(a.date));
+  const exps=[...db.expenses].filter(e=>!q||(e.description+e.category).toLowerCase().includes(q.toLowerCase())).sort((a,b)=>b.date.localeCompare(a.date));
+  const all=aggRev(db.revenues,usd),expAll=sum(db.expenses,e=>usd(+e.amount,e.currency));
+  const months=lastMonths(6);
+  const mRev=months.map(k=>aggRev(db.revenues.filter(r=>r.date.startsWith(k)),usd).gen),mExp=months.map(k=>sum(db.expenses.filter(e=>e.date.startsWith(k)),e=>usd(+e.amount,e.currency)));
+  /* partage */
+  const pr=periodRange(per),pa=aggRev(db.revenues.filter(r=>inR(r.date,pr)),usd),pe=sum(db.expenses.filter(e=>inR(e.date,pr)),e=>usd(+e.amount,e.currency));
+  const baseV=base==='gen'?pa.gen:base==='conf'?pa.conf:pa.paid,netP=baseV-pe,prov=Math.max(0,netP)*(db.settings.taxPct||0)/100,dist=netP-prov;
+  const partners=db.settings.partners,pctSum=sum(partners,p=>+p.pct||0);
+  const setPartner=(i,k,v)=>set('settings',s=>({...s,partners:s.partners.map((p,j)=>j===i?{...p,[k]:v}:p)}));
+  /* rapports */
+  const years=[...new Set([...db.revenues.map(r=>r.date.slice(0,4)),...db.expenses.map(e=>e.date.slice(0,4)),today().slice(0,4)])].sort().reverse();
+  const repMonths=Array.from({length:12},(_,i)=>`${year}-${pad(i+1)}`).map(k=>{const a=aggRev(db.revenues.filter(r=>r.date.startsWith(k)),usd),e=sum(db.expenses.filter(x=>x.date.startsWith(k)),x=>usd(+x.amount,x.currency));return {k,label:MONTHS[+k.slice(5)-1],gen:a.gen,conf:a.conf,paid:a.paid,exp:e,net:a.gen-e}});
+  const repCols=[{h:'Mois',v:'label'},{h:'Commissions générées (USD)',v:r=>r.gen.toFixed(2)},{h:'Confirmées (USD)',v:r=>r.conf.toFixed(2)},{h:'Payées (USD)',v:r=>r.paid.toFixed(2)},{h:'Dépenses (USD)',v:r=>r.exp.toFixed(2)},{h:'Résultat net (USD)',v:r=>r.net.toFixed(2)}];
+  const monthRows=[...db.revenues.filter(r=>r.date.startsWith(rmonth)).map(r=>({type:'Revenu',date:r.date,label:`${r.platform} · ${r.product}`,amt:usd(+r.gross,r.currency)*(r.status==='declined'?0:1)})),...db.expenses.filter(e=>e.date.startsWith(rmonth)).map(e=>({type:'Dépense',date:e.date,label:`${e.category} · ${e.description}`,amt:-usd(+e.amount,e.currency)}))].sort((a,b)=>a.date.localeCompare(b.date));
+  const rate=db.settings.rate;
+  return <>
+    <div><h2 style={{fontSize:20}}>Gestion financière</h2><p className="sub">Comptabilité simplifiée : suivi indicatif, sans valeur de comptabilité officielle.</p></div>
+    <Tabs v={tab} onChange={setTab} tabs={[['ov','Vue d’ensemble'],['rev','Revenus'],['exp','Dépenses'],['share','Partage des bénéfices'],['rep','Rapports']]}/>
+    {tab==='ov'&&<><div className="grid g-kpi">{[['Total des revenus',all.gen,'dollar'],['Total des dépenses',expAll,'trend'],['Résultat net estimé',all.gen-expAll,'chart'],['Commissions en attente',all.pend,'clock'],['Validées à payer',all.toPay,'check'],['Commissions reçues',all.paid,'wallet']].map(([l,v,i])=><div className="card kpi" key={l}><div className="kpi-top"><span>{l}</span><span className="kpi-ico"><Icon n={i} s={16}/></span></div><div className="kpi-v num">{m(v)}</div></div>)}</div>
+      <div className="card"><div className="card-h"><h2>Revenus et dépenses</h2><span className="sub">6 derniers mois</span></div><LineChart labels={months.map(monthLabel)} series={[{name:'Revenus',color:'var(--c1)',vals:mRev},{name:'Dépenses',color:'var(--c3)',vals:mExp}]} fmt={m}/></div></>}
+    {tab==='rev'&&<><div className="bar"><input className="inp" style={{flex:'1 1 180px'}} placeholder="Rechercher produit ou référence…" aria-label="Rechercher" value={q} onChange={e=>setQ(e.target.value)}/><select className="sel" aria-label="Plateforme" value={fp} onChange={e=>setFp(e.target.value)}><option value="">Toutes plateformes</option>{[...new Set(db.revenues.map(r=>r.platform))].map(p=><option key={p}>{p}</option>)}</select><select className="sel" aria-label="Statut" value={fs} onChange={e=>setFs(e.target.value)}><option value="">Tous statuts</option>{Object.entries(REV_STAT).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select>
+      <button className="btn" onClick={()=>exportData('revenus',db.revenues,[{h:'Date',v:'date'},{h:'Plateforme',v:'platform'},{h:'Produit',v:'product'},{h:'Commission brute',v:'gross'},{h:'Commission confirmée',v:'confirmed'},{h:'Commission payée',v:'paid'},{h:'Devise',v:'currency'},{h:'Statut',v:r=>REV_STAT[r.status]},{h:'Référence',v:'ref'},{h:'Source',v:'source'}])}><Icon n="download" s={15}/>Exporter</button>
+      <button className="btn pri" onClick={()=>setRedit({date:today(),platform:platNames[0]||'Autre',currency:'USD',status:'pending'})}><Icon n="plus" s={15}/>Ajouter un revenu</button></div>
+      <div className="card">{revs.length?<div className="tbl-wrap"><table><thead><tr><th>Date</th><th>Plateforme</th><th>Produit</th><th className="r">Brute</th><th className="r">Confirmée</th><th className="r">Payée</th><th>Statut</th><th>Source</th><th/></tr></thead><tbody>{revs.slice(0,300).map(r=><tr key={r.id}><td className="num">{fmtDate(r.date)}</td><td>{r.platform}</td><td>{r.product||'—'}{r.demo&&<> <Badge c="warn">Démo</Badge></>}</td><td className="r num">{(+r.gross).toFixed(2)} {r.currency}</td><td className="r num">{(+r.confirmed).toFixed(2)}</td><td className="r num">{(+r.paid).toFixed(2)}</td><td><Badge c={REV_STAT_C[r.status]}>{REV_STAT[r.status]}</Badge></td><td className="sub">{r.source||'manuel'}</td><td style={{whiteSpace:'nowrap'}}><button className="btn sm ghost ico-btn" aria-label="Modifier" onClick={()=>setRedit(r)}><Icon n="edit" s={15}/></button><button className="btn sm ghost ico-btn dng" aria-label="Supprimer" onClick={()=>ask('Supprimer ce revenu ?',()=>{set('revenues',a=>a.filter(x=>x.id!==r.id));toast('Revenu supprimé')})}><Icon n="trash" s={15}/></button></td></tr>)}</tbody></table></div>:<Empty icon="wallet" title="Aucun revenu">Ajoutez une commission ou importez un rapport CSV dans Affiliation.</Empty>}{revs.length>300&&<p className="sub">300 premières lignes affichées sur {revs.length}. Utilisez les filtres ou l’export.</p>}</div></>}
+    {tab==='exp'&&<><div className="bar"><input className="inp" style={{flex:'1 1 180px'}} placeholder="Rechercher une dépense…" aria-label="Rechercher" value={q} onChange={e=>setQ(e.target.value)}/>
+      <button className="btn" onClick={()=>exportData('depenses',db.expenses,[{h:'Date',v:'date'},{h:'Catégorie',v:'category'},{h:'Description',v:'description'},{h:'Montant',v:'amount'},{h:'Devise',v:'currency'},{h:'Justificatif',v:'ref'},{h:'Dépensé par',v:'person'}])}><Icon n="download" s={15}/>Exporter</button>
+      <button className="btn pri" onClick={()=>setEedit({date:today(),category:EXP_CATS[0],currency:'USD',person:db.users[0]?.name})}><Icon n="plus" s={15}/>Ajouter une dépense</button></div>
+      <div className="card">{exps.length?<div className="tbl-wrap"><table><thead><tr><th>Date</th><th>Catégorie</th><th>Description</th><th className="r">Montant</th><th>Justificatif</th><th>Par</th><th/></tr></thead><tbody>{exps.map(e=><tr key={e.id}><td className="num">{fmtDate(e.date)}</td><td>{e.category}</td><td>{e.description}{e.demo&&<> <Badge c="warn">Démo</Badge></>}</td><td className="r num">{(+e.amount).toFixed(2)} {e.currency}</td><td>{e.ref||'—'}</td><td>{e.person||'—'}</td><td style={{whiteSpace:'nowrap'}}><button className="btn sm ghost ico-btn" aria-label="Modifier" onClick={()=>setEedit(e)}><Icon n="edit" s={15}/></button><button className="btn sm ghost ico-btn dng" aria-label="Supprimer" onClick={()=>ask('Supprimer cette dépense ?',()=>{set('expenses',a=>a.filter(x=>x.id!==e.id));toast('Dépense supprimée')})}><Icon n="trash" s={15}/></button></td></tr>)}</tbody></table></div>:<Empty icon="wallet" title="Aucune dépense">Ajoutez votre première dépense.</Empty>}</div></>}
+    {tab==='share'&&<><Note c="warn" i="alert">Répartition indicative uniquement. Ce n’est ni une distribution juridiquement autorisée ni un calcul fiscal officiel. Votre activité n’est pas encore enregistrée : validez toute répartition et toute provision avec un professionnel.</Note>
+      <div className="card"><div className="bar" style={{marginBottom:14}}><Seg v={per} onChange={setPer} opts={[['month','Ce mois-ci'],['year','Année'],['all','Tout']]}/><label className="lbl" style={{flexDirection:'row',alignItems:'center'}}>Base<select className="sel" style={{width:'auto'}} value={base} onChange={e=>setBase(e.target.value)}><option value="paid">Commissions payées</option><option value="conf">Commissions confirmées</option><option value="gen">Commissions générées</option></select></label>
+        <label className="lbl" style={{flexDirection:'row',alignItems:'center'}}>Provision fiscale (%)<input className="inp" style={{width:80}} type="number" min="0" max="100" value={db.settings.taxPct} onChange={e=>set('settings',s=>({...s,taxPct:Math.min(100,Math.max(0,+e.target.value||0))}))}/></label></div>
+        <dl className="kv num"><dt>Base de revenus</dt><dd>{m(baseV)}</dd><dt>Dépenses</dt><dd>− {m(pe)}</dd><dt>Résultat avant provision</dt><dd>{m(netP)}</dd><dt>Provision fiscale renseignée</dt><dd>− {m(prov)}</dd><dt><b>Montant à répartir (indicatif)</b></dt><dd><b>{m(dist)}</b></dd></dl></div>
+      <div className="card"><div className="card-h"><h2>Associés</h2>{pctSum!==100&&<Badge c="bad">Total {pctSum} % : doit faire 100 %</Badge>}</div>
+        {partners.map((p,i)=><div key={i} className="bar" style={{padding:'8px 0',borderBottom:'1px solid var(--line)'}}><input className="inp" style={{flex:'1 1 160px'}} aria-label="Nom" value={p.name} onChange={e=>setPartner(i,'name',e.target.value)}/><input className="inp" style={{width:90}} type="number" min="0" max="100" aria-label="Pourcentage" value={p.pct} onChange={e=>setPartner(i,'pct',Math.min(100,Math.max(0,+e.target.value||0)))}/><span>%</span><b className="num" style={{width:120,textAlign:'right'}}>{m(dist*(+p.pct||0)/100)}</b></div>)}</div></>}
+    {tab==='rep'&&<><div className="bar"><Seg v={rep} onChange={setRep} opts={[['annuel','Rapport annuel'],['mensuel','Rapport mensuel']]}/>
+      {rep==='annuel'?<select className="sel" aria-label="Année" value={year} onChange={e=>setYear(e.target.value)}>{years.map(y=><option key={y}>{y}</option>)}</select>:<input className="inp" type="month" aria-label="Mois" value={rmonth} onChange={e=>setRmonth(e.target.value)} style={{width:'auto'}}/>}
+      <div className="grow"/><button className="btn" onClick={()=>rep==='annuel'?exportData('rapport-annuel-'+year,repMonths,repCols):exportData('rapport-'+rmonth,monthRows,[{h:'Type',v:'type'},{h:'Date',v:'date'},{h:'Libellé',v:'label'},{h:'Montant USD',v:r=>r.amt.toFixed(2)}])}><Icon n="download" s={15}/>Exporter CSV / Excel</button></div>
+      <div className="card">{rep==='annuel'?<div className="tbl-wrap"><table><thead><tr><th>Mois</th><th className="r">Générées</th><th className="r">Confirmées</th><th className="r">Payées</th><th className="r">Dépenses</th><th className="r">Résultat net</th></tr></thead><tbody>{repMonths.map(r=><tr key={r.k}><td>{r.label}</td><td className="r num">{m(r.gen)}</td><td className="r num">{m(r.conf)}</td><td className="r num">{m(r.paid)}</td><td className="r num">{m(r.exp)}</td><td className="r num"><b>{m(r.net)}</b></td></tr>)}<tr className="tfoot"><td>Total {year}</td><td className="r num">{m(sum(repMonths,r=>r.gen))}</td><td className="r num">{m(sum(repMonths,r=>r.conf))}</td><td className="r num">{m(sum(repMonths,r=>r.paid))}</td><td className="r num">{m(sum(repMonths,r=>r.exp))}</td><td className="r num">{m(sum(repMonths,r=>r.net))}</td></tr></tbody></table></div>
+        :<div className="tbl-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Libellé</th><th className="r">Montant</th></tr></thead><tbody>{monthRows.map((r,i)=><tr key={i}><td className="num">{fmtDate(r.date)}</td><td>{r.type}</td><td>{r.label}</td><td className="r num">{m(r.amt)}</td></tr>)}<tr className="tfoot"><td colSpan="3">Résultat du mois</td><td className="r num">{m(sum(monthRows,r=>r.amt))}</td></tr></tbody></table></div>}</div>
+      {db.settings.cur==='HTG'&&<p className="sub">Montants affichés en HTG au taux manuel de {rate} HTG pour 1 USD (modifiable dans Paramètres).</p>}</>}
+    {redit&&<Modal title={redit.id?'Modifier le revenu':'Ajouter un revenu'} wide onClose={()=>setRedit(null)}><Form fields={RF} initial={redit} onSubmit={saveR} onCancel={()=>setRedit(null)}/></Modal>}
+    {eedit&&<Modal title={eedit.id?'Modifier la dépense':'Ajouter une dépense'} onClose={()=>setEedit(null)}><Form fields={EF} initial={eedit} onSubmit={saveE} onCancel={()=>setEedit(null)}/></Modal>}
+  </>;
+}
+/* ============ Équipe ============ */
+function Team(){
+  const {db,set,toast,ask}=useApp();
+  const [edit,setEdit]=useState(null),[uedit,setUedit]=useState(null),[over,setOver]=useState(''),[own,setOwn]=useState('');
+  const uname=id=>(db.users.find(u=>u.id===id)||{}).name||'Non assigné';
+  const TF=[{k:'title',label:'Titre',req:true,full:true},{k:'description',label:'Description',type:'textarea'},{k:'owner',label:'Responsable',type:'select',opts:db.users.map(u=>[u.id,u.name])},{k:'priority',label:'Priorité',type:'select',opts:Object.entries(PRIO),req:true},{k:'due',label:'Date limite',type:'date'},{k:'status',label:'Statut',type:'select',opts:COLS,req:true},{k:'comments',label:'Commentaires',type:'textarea'}];
+  const UF=[{k:'name',label:'Nom',req:true},{k:'profile',label:'Profil',type:'select',opts:[['commercial','Direction commerciale et marketing'],['finance','Gestion financière']],req:true},{k:'email',label:'E-mail',type:'email'}];
+  const save=v=>{set('tasks',a=>v.id?a.map(x=>x.id===v.id?v:x):[...a,{...v,id:uid()}]);setEdit(null);toast('Tâche enregistrée')};
+  const move=(id,st)=>set('tasks',a=>a.map(x=>x.id===id?{...x,status:st}:x));
+  const saveU=v=>{set('users',a=>v.id?a.map(x=>x.id===v.id?v:x):[...a,{...v,id:uid()}]);setUedit(null);toast('Collaborateur enregistré')};
+  const tasks=db.tasks.filter(t=>!own||t.owner===own);
+  const P=[{k:'commercial',t:'Direction commerciale et marketing',l:['Gestion du catalogue','Gestion des produits','Marketing','Création des contenus','Réseaux sociaux','Suivi des performances']},{k:'finance',t:'Gestion financière',l:['Suivi des revenus','Gestion des dépenses','Suivi des commissions','Préparation des rapports','Contrôle des paiements']}];
+  return <>
+    <div className="bar"><div className="grow"><h2 style={{fontSize:20}}>Équipe et responsabilités</h2><p className="sub">Deux profils, un tableau de tâches partagé.</p></div><button className="btn" onClick={()=>setUedit({profile:'commercial'})}><Icon n="plus" s={15}/>Collaborateur</button><button className="btn pri" onClick={()=>setEdit({status:'todo',priority:'moyenne',owner:db.users[0]?.id})}><Icon n="plus" s={15}/>Nouvelle tâche</button></div>
+    <div className="grid g2">{P.map(p=><div className="card" key={p.k}><div className="card-h"><h2>{p.t}</h2></div>
+      <div className="bar" style={{marginBottom:10}}>{db.users.filter(u=>u.profile===p.k).map(u=><button key={u.id} className="btn sm" onClick={()=>setUedit(u)}><Icon n="users" s={14}/>{u.name}</button>)}{!db.users.some(u=>u.profile===p.k)&&<span className="sub">Aucun collaborateur</span>}</div>
+      <ul style={{margin:0,paddingLeft:18,display:'grid',gap:3,gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))'}}>{p.l.map(x=><li key={x}>{x}</li>)}</ul></div>)}</div>
+    <Note i="info">Les droits d’accès distincts ne s’appliquent qu’avec une authentification réelle (non active dans cette version locale) : toute personne ouvrant l’application sur cet appareil voit toutes les données.</Note>
+    <div className="bar"><b>Tableau des tâches</b><select className="sel" aria-label="Filtrer par responsable" value={own} onChange={e=>setOwn(e.target.value)}><option value="">Tous les responsables</option>{db.users.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select></div>
+    <div className="kanban">{COLS.map(([k,l])=><div key={k} className={'kcol'+(over===k?' over':'')} onDragOver={e=>{e.preventDefault();setOver(k)}} onDragLeave={()=>setOver('')} onDrop={e=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');setOver('');if(id)move(id,k)}}>
+      <h3>{l}<span className="badge">{tasks.filter(t=>t.status===k).length}</span></h3>
+      {tasks.filter(t=>t.status===k).map(t=>{const late=t.due&&t.due<today()&&t.status!=='done';return <div key={t.id} className="kcard" draggable onDragStart={e=>e.dataTransfer.setData('text/plain',t.id)}>
+        <div className="bar" style={{justifyContent:'space-between'}}><Badge c={PRIO_C[t.priority]}>{PRIO[t.priority]}</Badge>{late&&<Badge c="bad">En retard</Badge>}</div>
+        <b>{t.title}</b>{t.description&&<span className="sub" style={{fontSize:12.5}}>{t.description}</span>}
+        <span className="sub" style={{fontSize:12}}>{uname(t.owner)} · {t.due?'avant le '+fmtDate(t.due):'sans échéance'}</span>
+        {t.comments&&<span style={{fontSize:12,background:'var(--surface2)',borderRadius:7,padding:'5px 8px'}}>{t.comments}</span>}
+        <div className="bar"><button className="btn sm ico-btn" aria-label="Déplacer à gauche" disabled={k==='todo'} onClick={()=>move(t.id,COLS[COLS.findIndex(c=>c[0]===k)-1][0])}><Icon n="left" s={14}/></button><button className="btn sm ico-btn" aria-label="Déplacer à droite" disabled={k==='done'} onClick={()=>move(t.id,COLS[COLS.findIndex(c=>c[0]===k)+1][0])}><Icon n="right" s={14}/></button><div className="grow"/><button className="btn sm ico-btn" aria-label="Modifier" onClick={()=>setEdit(t)}><Icon n="edit" s={14}/></button><button className="btn sm ico-btn dng" aria-label="Supprimer" onClick={()=>ask(`Supprimer « ${t.title} » ?`,()=>{set('tasks',a=>a.filter(x=>x.id!==t.id));toast('Tâche supprimée')})}><Icon n="trash" s={14}/></button></div></div>})}
+    </div>)}</div>
+    {edit&&<Modal title={edit.id?'Modifier la tâche':'Nouvelle tâche'} onClose={()=>setEdit(null)}><Form fields={TF} initial={edit} onSubmit={save} onCancel={()=>setEdit(null)}/></Modal>}
+    {uedit&&<Modal title={uedit.id?'Modifier le collaborateur':'Nouveau collaborateur'} onClose={()=>setUedit(null)}><Form fields={UF} initial={uedit} onSubmit={saveU} onCancel={()=>setUedit(null)}/>{uedit.id&&db.users.length>1&&<div><button className="btn sm dng" onClick={()=>ask(`Retirer ${uedit.name} ?`,()=>{set('users',a=>a.filter(x=>x.id!==uedit.id));setUedit(null)})}><Icon n="trash" s={14}/>Retirer</button></div>}</Modal>}
+  </>;
+}
+
+/* ============ Objectifs ============ */
+function Goals(){
+  const {db,set,usd,m,toast,ask}=useApp();
+  const [edit,setEdit]=useState(null);
+  const t=today(),k=(new Date().getDay()+6)%7,mon=addDays(t,-k);
+  const R={quotidien:[t,t],hebdomadaire:[mon,addDays(mon,6)],mensuel:[t.slice(0,7)+'-01',t]};
+  const actual=g=>{const r=R[g.period];if(g.metric==='revenus')return aggRev(db.revenues.filter(x=>inR(x.date,r)),usd).gen;if(g.metric==='publications')return db.posts.filter(p=>p.status==='publie'&&inR(p.date,r)).length;if(g.metric==='partenaires')return db.platforms.filter(p=>p.status==='approuve').length;return +g.current||0};
+  const MET={revenus:'Revenus (USD)',publications:'Publications publiées',partenaires:'Plateformes approuvées',manuel:'Suivi manuel'};
+  const F=[{k:'title',label:'Objectif',req:true,full:true},{k:'period',label:'Période',type:'select',opts:[['quotidien','Quotidien'],['hebdomadaire','Hebdomadaire'],['mensuel','Mensuel']],req:true},{k:'metric',label:'Type',type:'select',opts:Object.entries(MET),req:true},{k:'target',label:'Cible',type:'number',min:0,req:true},{k:'current',label:'Valeur actuelle (suivi manuel)',type:'number',min:0,show:v=>v.metric==='manuel'}];
+  const save=v=>{set('goals',a=>v.id?a.map(x=>x.id===v.id?v:x):[...a,{...v,id:uid()}]);setEdit(null);toast('Objectif enregistré')};
+  return <>
+    <div className="bar"><div className="grow"><h2 style={{fontSize:20}}>Objectifs et stratégie</h2><p className="sub">La progression est calculée à partir de vos données réelles. Un objectif n’est pas un revenu garanti.</p></div><button className="btn pri" onClick={()=>setEdit({period:'mensuel',metric:'revenus'})}><Icon n="plus" s={15}/>Nouvel objectif</button></div>
+    <div className="card"><div className="card-h"><h2>Objectif financier quotidien</h2></div><div className="bar"><span className="sub">Cible par jour (USD)</span><input className="inp" style={{width:110}} type="number" min="0" aria-label="Cible quotidienne" value={db.settings.dailyTarget} onChange={e=>set('settings',s=>({...s,dailyTarget:Math.max(0,+e.target.value||0)}))}/><span className="sub">Utilisée dans le tableau de bord.</span></div></div>
+    {['quotidien','hebdomadaire','mensuel'].map(p=>{const gs=db.goals.filter(g=>g.period===p);return gs.length?<div key={p} className="card"><div className="card-h"><h2 style={{textTransform:'capitalize'}}>Objectifs {p==='quotidien'?'quotidiens':p==='hebdomadaire'?'hebdomadaires':'mensuels'}</h2></div>
+      <div style={{display:'grid',gap:16}}>{gs.map(g=>{const a=actual(g),pct=g.target?a/g.target*100:0,gap=a-g.target,isM=g.metric==='revenus',f=x=>isM?m(x):Math.round(x*10)/10;return <div key={g.id}><div className="bar" style={{justifyContent:'space-between',marginBottom:6}}><div><b>{g.title}</b><div className="sub" style={{fontSize:12}}>{MET[g.metric]}</div></div><div className="bar"><span className="num"><b>{f(a)}</b> / {f(+g.target)}</span><Badge c={gap>=0?'good':'warn'}>{gap>=0?'Atteint':'Écart '+f(gap)}</Badge><button className="btn sm ico-btn ghost" aria-label="Modifier" onClick={()=>setEdit(g)}><Icon n="edit" s={14}/></button><button className="btn sm ico-btn ghost dng" aria-label="Supprimer" onClick={()=>ask(`Supprimer « ${g.title} » ?`,()=>{set('goals',x=>x.filter(y=>y.id!==g.id));toast('Objectif supprimé')})}><Icon n="trash" s={14}/></button></div></div><Prog v={pct}/></div>})}</div></div>:null})}
+    {!db.goals.length&&<div className="card"><Empty icon="target" title="Aucun objectif">Définissez vos objectifs de revenus, de publication et de partenaires.</Empty></div>}
+    {edit&&<Modal title={edit.id?'Modifier l’objectif':'Nouvel objectif'} onClose={()=>setEdit(null)}><Form fields={F} initial={edit} onSubmit={save} onCancel={()=>setEdit(null)}/></Modal>}
+  </>;
+}
+
+/* ============ Paramètres ============ */
+function SettingsPage(){
+  const {db,set,setDb,toast,ask,exportData,showJSON}=useApp();
+  const S=db.settings,up=(k,v)=>set('settings',s=>({...s,[k]:v}));
+  const [dedit,setDedit]=useState(null);
+  const DF=[{k:'kind',label:'Type',type:'select',opts:[['document','Document interne'],['accord','Accord de collaboration'],['rapport','Rapport']],req:true},{k:'title',label:'Titre',req:true},{k:'content',label:'Contenu',type:'textarea',rows:10},{k:'date',label:'Date',type:'date'}];
+  const saveD=v=>{set('docs',a=>v.id?a.map(x=>x.id===v.id?v:x):[{...v,id:uid()},...a]);setDedit(null);toast('Document enregistré')};
+  const KIND={document:'Document',accord:'Accord',rapport:'Rapport'};
+  const clearDemo=()=>ask('Supprimer toutes les données de démonstration ? Vos propres données sont conservées.',()=>{setDb(d=>({...d,demoActive:false,products:d.products.filter(x=>!x.demo),revenues:d.revenues.filter(x=>!x.demo),clicks:d.clicks.filter(x=>!x.demo),expenses:d.expenses.filter(x=>!x.demo),posts:d.posts.filter(x=>!x.demo),library:d.library.filter(x=>!x.demo)}));toast('Données de démonstration supprimées')});
+  const importJSON=async f=>{if(!f)return;try{const j=JSON.parse(await readFile(f));if(!j||typeof j!=='object'||!Array.isArray(j.products))throw new Error('x');setDb(d=>({...d,...j}));toast('Sauvegarde restaurée')}catch(e){toast('Fichier de sauvegarde invalide','err')}};
+  const reset=()=>ask('Réinitialiser toute l’application ? Toutes vos données locales seront effacées.',()=>{try{localStorage.removeItem(LS)}catch(e){}setDb(seedData());toast('Application réinitialisée')});
+  return <>
+    <div><h2 style={{fontSize:20}}>Paramètres et documents</h2><p className="sub">Marque, devise, collaborateurs, confidentialité et sauvegardes.</p></div>
+    <div className="grid g2">
+      <div className="card"><div className="card-h"><h2>Informations sur la marque</h2></div><div className="form">
+        <label className="lbl">Nom<input className="inp" value={S.brand} onChange={e=>up('brand',e.target.value)}/></label><label className="lbl">Slogan<input className="inp" value={S.slogan} onChange={e=>up('slogan',e.target.value)}/></label>
+        <label className="lbl">Site web<input className="inp" value={S.website} onChange={e=>up('website',e.target.value)} placeholder="https://"/></label><label className="lbl">Statut de l’entreprise<input className="inp" value="Non enregistrée (phase de démarrage)" readOnly/></label></div></div>
+      <div className="card"><div className="card-h"><h2>Coordonnées professionnelles</h2></div><div className="form">
+        <label className="lbl">E-mail<input className="inp" type="email" value={S.contactEmail} onChange={e=>up('contactEmail',e.target.value)}/></label><label className="lbl">Téléphone<input className="inp" value={S.contactPhone} onChange={e=>up('contactPhone',e.target.value)}/></label>
+        <label className="lbl full">Adresse<input className="inp" value={S.address} onChange={e=>up('address',e.target.value)}/></label></div></div>
+      <div className="card"><div className="card-h"><h2>Devise</h2></div><div className="form">
+        <label className="lbl">Affichage des montants<select className="sel" value={S.cur} onChange={e=>up('cur',e.target.value)}><option value="USD">USD ($)</option><option value="HTG">HTG (gourdes)</option></select></label>
+        <label className="lbl">Taux : 1 USD = … HTG<input className="inp" type="number" min="1" value={S.rate} onChange={e=>up('rate',Math.max(1,+e.target.value||1))}/><span className="hint">Taux manuel : mettez-le à jour vous-même.</span></label>
+        {['EUR','GBP','CAD'].map(c=><label key={c} className="lbl">1 {c} = … USD<input className="inp" type="number" step="0.01" min="0" value={S.fx[c]} onChange={e=>up('fx',{...S.fx,[c]:+e.target.value||0})}/></label>)}</div>
+        <p className="sub" style={{marginTop:10,fontSize:12}}>Les commissions reçues en EUR, GBP ou CAD sont converties en USD avec ces taux indicatifs.</p></div>
+      <div className="card"><div className="card-h"><h2>Confidentialité</h2></div>
+        <label style={{display:'flex',gap:10,alignItems:'center',marginBottom:10}}><input type="checkbox" checked={S.privacy.hideAmounts} onChange={e=>up('privacy',{...S.privacy,hideAmounts:e.target.checked})}/>Masquer les montants à l’écran</label>
+        <p className="sub">Vos données restent dans ce navigateur (stockage local). Aucun suivi publicitaire n’est utilisé. Elles ne sont synchronisées avec aucun autre appareil ni utilisateur.</p></div>
+    </div>
+    <div className="card"><div className="card-h"><h2>Transparence des liens affiliés</h2></div><label className="lbl">Mention affichée sur les fiches produits<textarea className="txt" value={S.disclosure} onChange={e=>up('disclosure',e.target.value)} rows="2"/></label></div>
+    <div className="card"><div className="card-h"><h2>Utilisateurs</h2></div><div className="tbl-wrap"><table><thead><tr><th>Nom</th><th>Profil</th><th>E-mail</th></tr></thead><tbody>{db.users.map(u=><tr key={u.id}><td>{u.name}</td><td>{u.profile==='finance'?'Gestion financière':'Direction commerciale et marketing'}</td><td>{u.email||'—'}</td></tr>)}</tbody></table></div><p className="sub" style={{marginTop:8}}>Modifiez les collaborateurs dans l’onglet Équipe. Aucune connexion par mot de passe n’existe dans cette version locale.</p></div>
+    <div className="card"><div className="card-h"><h2>Documents internes et accords</h2><button className="btn sm" onClick={()=>setDedit({kind:'document',date:today()})}><Icon n="plus" s={14}/>Nouveau</button></div>
+      {db.docs.length?<div style={{display:'grid',gap:8}}>{db.docs.map(d=><div className="bar" key={d.id} style={{padding:'8px 0',borderBottom:'1px solid var(--line)'}}><Badge c="info">{KIND[d.kind]}</Badge><b className="grow">{d.title}</b><span className="sub">{fmtDate(d.date)}</span><button className="btn sm" onClick={()=>setDedit(d)}><Icon n="edit" s={14}/>Ouvrir</button><button className="btn sm dng ico-btn" aria-label="Supprimer" onClick={()=>ask(`Supprimer « ${d.title} » ?`,()=>{set('docs',a=>a.filter(x=>x.id!==d.id));toast('Document supprimé')})}><Icon n="trash" s={14}/></button></div>)}</div>:<Empty icon="file" title="Aucun document">Ajoutez accords et documents internes.</Empty>}</div>
+    <div className="card"><div className="card-h"><h2>Rapports téléchargeables</h2></div><div className="bar">
+      <button className="btn" onClick={()=>exportData('revenus',db.revenues,[{h:'Date',v:'date'},{h:'Plateforme',v:'platform'},{h:'Produit',v:'product'},{h:'Brute',v:'gross'},{h:'Confirmée',v:'confirmed'},{h:'Payée',v:'paid'},{h:'Devise',v:'currency'},{h:'Statut',v:r=>REV_STAT[r.status]},{h:'Référence',v:'ref'}])}><Icon n="download" s={15}/>Revenus</button>
+      <button className="btn" onClick={()=>exportData('depenses',db.expenses,[{h:'Date',v:'date'},{h:'Catégorie',v:'category'},{h:'Description',v:'description'},{h:'Montant',v:'amount'},{h:'Devise',v:'currency'},{h:'Justificatif',v:'ref'},{h:'Par',v:'person'}])}><Icon n="download" s={15}/>Dépenses</button>
+      <button className="btn" onClick={()=>exportData('produits',db.products,[{h:'Nom',v:'name'},{h:'Catégorie',v:'category'},{h:'Prix',v:'price'},{h:'Commission %',v:'rate'},{h:'Plateforme',v:'platform'},{h:'Lien',v:'link'},{h:'Statut',v:p=>PSTAT[p.status]}])}><Icon n="download" s={15}/>Produits</button></div></div>
+    <div className="card"><div className="card-h"><h2>Sauvegarde et données</h2></div>
+      <p className="sub" style={{marginBottom:12}}>Les données sont enregistrées dans ce navigateur. Exportez une sauvegarde régulièrement : vider les données du navigateur les efface.</p>
+      <div className="bar"><button className="btn pri" onClick={showJSON}><Icon n="download" s={15}/>Sauvegarde complète (JSON)</button>
+        <label className="btn"><Icon n="upload" s={15}/>Restaurer une sauvegarde<input type="file" accept=".json,application/json" hidden onChange={e=>{importJSON(e.target.files[0]);e.target.value=''}}/></label>
+        {db.demoActive&&<button className="btn" onClick={clearDemo}>Supprimer les données de démonstration</button>}
+        <button className="btn dng" onClick={reset}><Icon n="trash" s={15}/>Tout réinitialiser</button></div></div>
+    {dedit&&<Modal title={dedit.id?'Modifier le document':'Nouveau document'} wide onClose={()=>setDedit(null)}><Form fields={DF} initial={dedit} onSubmit={saveD} onCancel={()=>setDedit(null)}/></Modal>}
+  </>;
+}
+/* ============ Application ============ */
+const PAGES=[['accueil','Tableau de bord','home',Dashboard],['produits','Produits','box',Products],['affiliation','Affiliation','link',Affiliation],['marketing','Marketing','mega',Marketing],['finances','Finances','wallet',Finances],['equipe','Équipe','users',Team],['objectifs','Objectifs','target',Goals],['parametres','Paramètres','gear',SettingsPage]];
+const pageFromHash=()=>{const h=(location.hash||'').slice(1);return PAGES.some(p=>p[0]===h)?h:'accueil'};
+
+function ExportModal({ex,onClose}){
+  const {toast}=useApp();
+  const copy=()=>navigator.clipboard?.writeText(ex.text).then(()=>toast('Copié : collez dans Excel ou un éditeur'),()=>toast('Copie bloquée : sélectionnez le texte et copiez-le','err'));
+  const xl=()=>{try{const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ex.aoa),'Données');dlBlob(ex.name+'.xlsx',new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/octet-stream'}));toast('Export Excel lancé')}catch(e){toast('Export Excel indisponible : utilisez le CSV','err')}};
+  return <Modal title={ex.json?'Sauvegarde complète':'Exporter : '+ex.name} wide onClose={onClose}>
+    <Note i="info">Si le téléchargement ne démarre pas (aperçu intégré, navigateur restrictif), utilisez « Copier » puis collez dans un fichier. Le téléchargement direct fonctionne quand l’application est hébergée sur votre propre site.</Note>
+    <textarea className="txt mono" readOnly rows="10" value={ex.text} onFocus={e=>e.target.select()} aria-label="Contenu exporté"/>
+    <div className="bar" style={{justifyContent:'flex-end'}}><button className="btn" onClick={copy}><Icon n="copy" s={15}/>Copier</button>
+      <button className="btn" onClick={()=>{dlBlob(ex.name+(ex.json?'.json':'.csv'),new Blob([ex.json?ex.text:'﻿'+ex.text],{type:ex.json?'application/json':'text/csv;charset=utf-8'}));}}><Icon n="download" s={15}/>Télécharger {ex.json?'JSON':'CSV'}</button>
+      {!ex.json&&<button className="btn pri" onClick={xl}><Icon n="download" s={15}/>Télécharger Excel</button>}</div>
+  </Modal>;
+}
+
+function App(){
+  const [db,setDb]=useState(loadDB);
+  const [page,setPage]=useState(pageFromHash);
+  const [open,setOpen]=useState(false),[bell,setBell]=useState(false);
+  const [toasts,setToasts]=useState([]),[conf,setConf]=useState(null),[ex,setEx]=useState(null),[storeErr,setStoreErr]=useState(false);
+  useEffect(()=>{try{localStorage.setItem(LS,JSON.stringify(db));setStoreErr(false)}catch(e){setStoreErr(true)}},[db]);
+  useEffect(()=>{const h=()=>setPage(pageFromHash());window.addEventListener('hashchange',h);return()=>window.removeEventListener('hashchange',h)},[]);
+  const go=p=>{setPage(p);setOpen(false);try{location.hash=p}catch(e){}window.scrollTo(0,0)};
+  const set=useCallback((k,fn)=>setDb(d=>({...d,[k]:typeof fn==='function'?fn(d[k]):fn})),[]);
+  const toast=useCallback((msg,type='')=>{const id=uid();setToasts(t=>[...t,{id,msg,type}]);setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),type==='err'?6000:3200)},[]);
+  const S=db.settings;
+  const usd=useCallback((n,c)=>!c||c==='USD'?n:c==='HTG'?n/S.rate:n*(S.fx[c]||1),[S.rate,S.fx]);
+  const m=useCallback(n=>{if(S.privacy.hideAmounts)return '••••';if(S.cur==='HTG')return Math.round(n*S.rate).toLocaleString('fr-FR')+' HTG';return (n<0?'−$':'$')+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})},[S.cur,S.rate,S.privacy.hideAmounts]);
+  const exportData=(name,rows,cols)=>{const text=toCSV(rows,cols);setEx({name,text,aoa:[cols.map(c=>c.h),...rows.map(r=>cols.map(c=>{const v=typeof c.v==='function'?c.v(r):r[c.v];return v==null?'':v}))]})};
+  const showJSON=()=>setEx({name:'dsmm-sauvegarde-'+today(),json:true,text:JSON.stringify(db,null,1)});
+  const ctx={db,set,setDb,usd,m,toast,ask:(msg,fn)=>setConf({msg,fn}),exportData,showJSON,go};
+  /* alertes calculées à partir des données réelles */
+  const A=aggRev(db.revenues,usd),late=db.tasks.filter(t=>t.due&&t.due<today()&&t.status!=='done').length;
+  const alerts=[];
+  if(db.integrations.awin.status!=='connected'&&db.integrations.amazon.status!=='connected')alerts.push(['info','Aucun compte affilié connecté : mode manuel actif.']);
+  if(A.pend>0)alerts.push(['warn',`Commissions en attente : ${m(A.pend)}.`]);
+  if(A.toPay>0)alerts.push(['good',`Commissions validées à recevoir : ${m(A.toPay)}.`]);
+  if(late)alerts.push(['bad',`${late} tâche(s) en retard.`]);
+  Object.entries(db.integrations).forEach(([k,i])=>{if(i.status==='error')alerts.push(['bad',`Connexion ${k==='awin'?'Awin':'Amazon'} en erreur.`])});
+  const [,title,,Page]=PAGES.find(p=>p[0]===page);
+  const demoN=db.revenues.filter(r=>r.demo).length+db.products.filter(r=>r.demo).length;
+  return <Ctx.Provider value={ctx}><div className="app">
+    <div className={'scrim'+(open?' open':'')} onClick={()=>setOpen(false)}/>
+    <aside className={'side'+(open?' open':'')} aria-label="Navigation principale">
+      <div className="logo"><div className="logo-mark"><Icon n="leaf" s={20}/></div><div><div className="logo-t">Daily<br/>Smart Market</div></div></div>
+      <div className="logo-s" style={{padding:'0 6px 14px'}}>{S.slogan}</div>
+      <nav className="nav">{PAGES.map(([k,l,i])=><button key={k} className={page===k?'on':''} aria-current={page===k?'page':undefined} onClick={()=>go(k)}><Icon n={i}/>{l}</button>)}</nav>
+      <div className="side-foot">{S.disclosure}</div>
+    </aside>
+    <div className="main">
+      <header className="top"><button className="btn ico-btn menu-btn" aria-label="Ouvrir le menu" onClick={()=>setOpen(true)}><Icon n="menu"/></button><h1>{title}</h1>
+        <Seg v={S.cur} onChange={v=>set('settings',s=>({...s,cur:v}))} opts={[['USD','USD'],['HTG','HTG']]}/>
+        <div className="bell"><button className="btn ico-btn" aria-label="Alertes" onClick={()=>setBell(b=>!b)}><Icon n="bell"/></button>{alerts.length>0&&<span className="bell-n">{alerts.length}</span>}
+          {bell&&<div className="pop"><b>Alertes</b>{alerts.length?alerts.map((a,i)=><Note key={i} c={a[0]==='info'?'':a[0]} i={a[0]==='bad'?'alert':a[0]==='good'?'check':'info'}>{a[1]}</Note>):<span className="sub">Rien à signaler.</span>}</div>}</div>
+      </header>
+      <main className="page">
+        {storeErr&&<Note c="bad" i="alert"><b>Stockage local indisponible.</b> Vos modifications ne seront pas conservées après actualisation. Exportez une sauvegarde depuis Paramètres.</Note>}
+        {db.demoActive&&demoN>0&&<div className="demo-bar"><Icon n="info" s={17}/><span style={{flex:1,minWidth:200}}>Données de démonstration : les chiffres affichés sont fictifs jusqu’à la saisie de vos données réelles.</span><button className="btn sm" onClick={()=>go('parametres')}>Les supprimer dans Paramètres</button></div>}
+        <Page/>
+      </main>
+    </div>
+    {conf&&<Modal title="Confirmation" onClose={()=>setConf(null)}><p>{conf.msg}</p><div className="bar" style={{justifyContent:'flex-end'}}><button className="btn" onClick={()=>setConf(null)}>Annuler</button><button className="btn pri" onClick={()=>{const f=conf.fn;setConf(null);f()}}>Confirmer</button></div></Modal>}
+    {ex&&<ExportModal ex={ex} onClose={()=>setEx(null)}/>}
+    <div className="toasts" aria-live="polite">{toasts.map(t=><div key={t.id} className={'toast'+(t.type==='err'?' err':'')}><Icon n={t.type==='err'?'alert':'check'} s={16}/>{t.msg}</div>)}</div>
+  </div></Ctx.Provider>;
+}
+class Boundary extends React.Component{
+  constructor(p){super(p);this.state={e:null}}
+  static getDerivedStateFromError(e){return {e}}
+  render(){return this.state.e?<div style={{padding:24}}><h2>Une erreur est survenue</h2><p style={{margin:'10px 0'}}>{String(this.state.e.message||this.state.e)}</p><button className="btn pri" onClick={()=>this.setState({e:null})}>Réessayer</button></div>:this.props.children}
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Boundary><App/></Boundary>);
+</script>
